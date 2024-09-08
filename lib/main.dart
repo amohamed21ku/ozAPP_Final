@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:oz/firebase_options.dart';
 // import 'package:oz/Screens/SignUp.dart';
 // import 'package:oz/Screens/itemsScreen.dart';
 // import 'package:oz/Screens/usersScreen.dart';
@@ -34,7 +35,9 @@ import 'Screens/welcome_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // initializeFirebase();
 
   SharedPreferences logindata = await SharedPreferences.getInstance();

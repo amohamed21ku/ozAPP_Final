@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "575722688023",
-    "project_id": "ozapp-631fe",
-    "storage_bucket": "ozapp-631fe.appspot.com"
+    "project_number": "994510824234",
+    "project_id": "ozapp-as1703",
+    "storage_bucket": "ozapp-as1703.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:575722688023:android:5e41cd201739b485bed652",
+        "mobilesdk_app_id": "1:994510824234:android:84b0cc20da51c48875b453",
         "android_client_info": {
           "package_name": "com.AScode.oz"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBpvZLmqfwmRMQ5QT7ZK4wpwSEO_muD9-w"
+          "current_key": "AIzaSyCZth2RlkEGi9BPmjJFBCGtEaw0bJGF_XA"
         }
       ],
       "services": {
