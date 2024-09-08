@@ -188,7 +188,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        padding: const EdgeInsets.all(10.0),
         child: showSpinner
             ? const Center(
                 child: CircularProgressIndicator(
@@ -220,7 +220,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
                       // print('Error decoding cached customers: $error');
                     }
                     return ListView.separated(
-                      shrinkWrap: true,
+                      // shrinkWrap: true,
                       itemCount: cachedCustomers.length,
                       itemBuilder: (context, index) {
                         final customer = cachedCustomers[index];

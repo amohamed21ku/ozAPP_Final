@@ -87,50 +87,46 @@ class _UsersScreenState extends State<UsersScreen> {
           ),
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: const Color(0xffa4392f),
-      //   onPressed: () {
-      //     // Add functionality to add new customers here
-      //   },
-      //   child: const Icon(Icons.add, color: Colors.white),
-      // ),
-      body: ModalProgressHUD(
-        progressIndicator: const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(
-              Color(0xffa4392f)), // Change spinner color to theme color
-          strokeWidth: 5.0, // Adjust spinner thickness if needed
-        ),
-        inAsyncCall: showSpinner,
-        child: RefreshIndicator(
-          onRefresh: _handleRefresh,
-          color: const Color(
-              0xffa4392f), // Change refresh indicator color to theme color
-          backgroundColor:
-              Colors.grey[200], // Change background color of refresh indicator
-          child: ListView.separated(
-            // shrinkWrap: true,
-            // physics: const NeverScrollableScrollPhysics(),
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              final user = users[index];
-              return InfoCard(
-                profilePicture: user.profilePicture,
-                name: user.name,
-                company: user.email,
-                onpress: () {
-                  // print(user.name);
-                },
-                initial: user.initial,
-                customerId: '',
-                isUser: true, // Assuming this is needed for the infoCard widget
-              );
-            },
-            separatorBuilder: (BuildContext context, int index) =>
-                const SizedBox(
-              height: 4,
-            ),
-          ),
-        ),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: showSpinner
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xffa4392f)), // Change spinner color to theme color
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: const Color(
+                    0xffa4392f), // Change refresh indicator color to theme color
+                backgroundColor: Colors
+                    .grey[200], // Change background color of refresh indicator
+                child: ListView.separated(
+                  // shrinkWrap: true,
+                  // physics: const NeverScrollableScrollPhysics(),
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return InfoCard(
+                      profilePicture: user.profilePicture,
+                      name: user.name,
+                      company: user.email,
+                      onpress: () {
+                        // print(user.name);
+                      },
+                      initial: user.initial,
+                      customerId: '',
+                      isUser:
+                          true, // Assuming this is needed for the infoCard widget
+                    );
+                  },
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const SizedBox(
+                    height: 4,
+                  ),
+                ),
+              ),
       ),
     );
   }

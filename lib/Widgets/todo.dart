@@ -355,6 +355,55 @@ class _CalendarPageState extends State<CalendarPage> {
                       final event = events[index];
                       return Dismissible(
                         key: Key(event['event'] + event['time']),
+                        confirmDismiss: (direction) async {
+                          return await showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Confirm Delete',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(
+                                        0xffa4392f), // Specify the color
+                                  ),
+                                ),
+                                content: Text(
+                                  'Do you want to delete this Event?',
+                                  style: GoogleFonts
+                                      .poppins(), // Use default Poppins style
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(false); // Cancel deletion
+                                    },
+                                    child: Text(
+                                      'No',
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(
+                                            0xffa4392f), // Specify the color
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(true); // Confirm deletion
+                                    },
+                                    child: Text(
+                                      'Yes',
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(
+                                            0xffa4392f), // Specify the color
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
                         direction: DismissDirection.startToEnd,
                         onDismissed: (direction) {
                           _deleteEvent(event);
