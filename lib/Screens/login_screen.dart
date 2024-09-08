@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:oz/Screens/homeScreen.dart';
+import 'package:oz/Screens/homeScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Widgets/components.dart';
@@ -176,11 +176,11 @@ class _LoginScreenState extends State<LoginScreen>
                                         "id", snapshot.docs.first.id);
                                     logindata.setString('profilePic',
                                         userData['profilePicture']);
-                                    // Navigator.push(
-                                    //     context,
-                                    //     MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             const HomeScreen()));
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const HomeScreen()));
 
                                     // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => homeScreen()));
                                   } else {
@@ -245,9 +245,9 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> checkIfAlreadyLogin() async {
     logindata = await SharedPreferences.getInstance();
     isnew = (logindata.getBool('login') ?? true);
-    //   if (isnew == false) {
-    //   //   Navigator.pushReplacement(
-    //   //       // context, MaterialPageRoute(builder: (context) => const HomeScreen()));
-    //   // }
+    if (isnew == false) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+    }
   }
 }
