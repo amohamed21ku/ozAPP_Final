@@ -50,33 +50,34 @@ class GsheetAPI {
 
       Map<String, dynamic> item = {};
       for (int j = 0; j < headers.length; j++) {
-        if(headers[j] == 'S/Item No.'){
+        if (headers[j] == 'S/Item No.') {
           headers[j] = 'Item No';
         }
-        if(headers[j] == 'S/Item Name'){headers[j] = 'Item Name';}
+        if (headers[j] == 'S/Item Name') {
+          headers[j] = 'Item Name';
+        }
         item[headers[j]] = row.length > j ? row[j] : '';
-
       }
       item.remove('USD');
       item.remove('C/F');
       item.remove('Tarih');
 
       List<dynamic> previous_prices = [
-        row.length > 10 ? row[10] : '',
-         row.length > 11 ? row[11] : '',
-         row.length > 12 ? row[12] : '',
-        row.length > 13 ? row[13] : '',
-        row.length > 14 ? row[14] : '',
-         row.length > 15 ? row[15] : '',
-         row.length > 16 ? row[16] : '',
-       row.length > 17 ? row[17] : '',
-         row.length > 18 ? row[18] : '',
-        row.length > 19 ? row[19] : '',
-        row.length > 20 ? row[20] : '',
-        row.length > 21 ? row[21] : '',
+        //  row.length > 10 ? row[10] : '',
+        //   row.length > 11 ? row[11] : '',
+        //   row.length > 12 ? row[12] : '',
+        //  row.length > 13 ? row[13] : '',
+        //  row.length > 14 ? row[14] : '',
+        //   row.length > 15 ? row[15] : '',
+        //   row.length > 16 ? row[16] : '',
+        // row.length > 17 ? row[17] : '',
+        //   row.length > 18 ? row[18] : '',
+        //  row.length > 19 ? row[19] : '',
+        //  row.length > 20 ? row[20] : '',
+        //  row.length > 21 ? row[21] : '',
       ];
 
-      item['Previous_Prices'] = previous_prices;
+      // item['Previous_Prices'] = previous_prices;
 
       items.add(item);
     }
@@ -90,7 +91,11 @@ class GsheetAPI {
     final sheetData = await fetchSheetData();
     final firestoreData = await fetchFirestoreData();
 
-    final sheetDataMap = {for (var item in sheetData) if (item['Kodu'] != null && item['Kodu'].toString() !='') item['Kodu']: item};
+    final sheetDataMap = {
+      for (var item in sheetData)
+        if (item['Kodu'] != null && item['Kodu'].toString() != '')
+          item['Kodu']: item
+    };
 
     for (var docId in firestoreData.keys) {
       if (!sheetDataMap.containsKey(docId)) {
@@ -106,7 +111,7 @@ class GsheetAPI {
     }
   }
 
- // NEED THIS ...
+  // NEED THIS ...
   Future<Map<String, dynamic>> fetchFirestoreData() async {
     final firestore = FirebaseFirestore.instance;
     final querySnapshot = await firestore.collection('items').get();
@@ -118,15 +123,35 @@ class GsheetAPI {
 
     return items;
   }
+
   Future<void> uploadDataToGoogleSheet() async {
     final firestore = FirebaseFirestore.instance;
     final querySnapshot = await firestore.collection('items').get();
 
     List<List<dynamic>> sheetData = [
       [
-        'Kodu', 'Kalite', 'Eni', 'Gramaj', 'NOT', 'Supplier', 'S/Item No.',
-        'S/Item Name', 'Price', 'Date', 'USD', 'C/F', 'Tarih', 'USD', 'C/F',
-        'Tarih', 'USD', 'C/F', 'Tarih', 'USD', 'C/F', 'Tarih'
+        'Kodu',
+        'Kalite',
+        'Eni',
+        'Gramaj',
+        'NOT',
+        'Supplier',
+        'S/Item No.',
+        'S/Item Name',
+        'Price',
+        'Date',
+        'USD',
+        'C/F',
+        'Tarih',
+        'USD',
+        'C/F',
+        'Tarih',
+        'USD',
+        'C/F',
+        'Tarih',
+        'USD',
+        'C/F',
+        'Tarih'
       ]
     ];
 
@@ -143,14 +168,15 @@ class GsheetAPI {
         data['Item Name'],
         data['Price'],
         data['Date'],
+        data['Previous_Prices']
       ];
 
-      List previousPrices = data['Previous_Prices'] ?? [];
-      for (int i = 0; i < previousPrices.length; i += 3) {
-        row.add(previousPrices[i] ?? '');
-        row.add(previousPrices[i + 1] ?? '');
-        row.add(previousPrices[i + 2] ?? '');
-      }
+      // List previousPrices = data['Previous_Prices'] ?? [];
+      // for (int i = 0; i < previousPrices.length; i += 3) {
+      //   row.add(previousPrices[i] ?? '');
+      //   row.add(previousPrices[i + 1] ?? '');
+      //   row.add(previousPrices[i + 2] ?? '');
+      // }
 
       sheetData.add(row);
     }
@@ -162,7 +188,6 @@ class GsheetAPI {
     await _worksheet!.clear();
     await _worksheet!.values.insertRows(1, sheetData);
 
-
     if (_worksheet == null) {
       await init();
     }
@@ -170,9 +195,4 @@ class GsheetAPI {
     await _worksheet!.clear();
     await _worksheet!.values.insertRows(1, sheetData);
   }
-
-
-
 }
-
-

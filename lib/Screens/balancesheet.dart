@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import '../Widgets/infocard.dart';
 import '../models/Customers.dart';
 import 'spreedsheet.dart';
@@ -86,46 +85,45 @@ class _BalanceSheetState extends State<BalanceSheet> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: ModalProgressHUD(
-          progressIndicator: const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-                Color(0xffa4392f)), // Change spinner color to theme color
-            strokeWidth: 5.0, // Adjust spinner thickness if needed
-          ),
-          inAsyncCall: showSpinner,
-          child: RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: const Color(
-                0xffa4392f), // Change refresh indicator color to theme color
-            backgroundColor: Colors
-                .grey[200], // Change background color of refresh indicator
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: customers.length,
-              itemBuilder: (context, index) {
-                final customer = customers[index];
-                return InfoCard(
-                  name: customer.name,
-                  company: customer.company,
-                  onpress: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => Spreadsheet(
-                        customer: customer,
-                      ),
-                    ));
+        child: showSpinner
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xffa4392f)), // Change spinner color to theme color
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _handleRefresh,
+                color: const Color(
+                    0xffa4392f), // Change refresh indicator color to theme color
+                backgroundColor: Colors
+                    .grey[200], // Change background color of refresh indicator
+                child: ListView.separated(
+                  // shrinkWrap: true,
+                  itemCount: customers.length,
+                  itemBuilder: (context, index) {
+                    final customer = customers[index];
+                    return InfoCard(
+                      name: customer.name,
+                      company: customer.company,
+                      onpress: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => Spreadsheet(
+                            customer: customer,
+                          ),
+                        ));
+                      },
+                      initial: customer.initial,
+                      customerId: customer.cid,
+                      isUser: true,
+                    );
                   },
-                  initial: customer.initial,
-                  customerId: customer.cid,
-                  isUser: true,
-                );
-              },
-              separatorBuilder: (BuildContext context, int index) =>
-                  const SizedBox(
-                height: 4,
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const SizedBox(
+                    height: 4,
+                  ),
+                ),
               ),
-            ),
-          ),
-        ),
       ),
     );
   }

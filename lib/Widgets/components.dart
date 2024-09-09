@@ -366,3 +366,41 @@ class MyTextField extends StatelessWidget {
     );
   }
 }
+
+///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++///
+
+// previous_prices_table.dart
+
+class PreviousPricesTable extends StatelessWidget {
+  final List<Map<String, dynamic>> previousPrices;
+
+  PreviousPricesTable({required this.previousPrices});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Previous Prices',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 10),
+        DataTable(
+          columns: [
+            const DataColumn(label: Text('Date')),
+            const DataColumn(label: Text('Price')),
+          ],
+          rows: previousPrices.map((price) {
+            return DataRow(
+              cells: [
+                DataCell(Text(price['Date'] ?? '')),
+                DataCell(Text(price['Price']?.toString() ?? '')),
+              ],
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}

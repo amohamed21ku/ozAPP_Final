@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> item;
-  final String docId; // Document ID
+  final String docId;
 
   const ItemDetailsScreen({super.key, required this.item, required this.docId});
 
@@ -22,12 +23,69 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController priceController = TextEditingController();
   TextEditingController dateController = TextEditingController();
-  List<Map<String, dynamic>> previousPrices = [];
+  TextEditingController NOTController = TextEditingController();
+
+  int _selectedPriceIndex = 0; // Default to the first entry
+
+  List<dynamic> previousPrices = [];
+  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+  final TextEditingController _priceController = TextEditingController();
+  String _selectedDate = '';
+
+  void _confirmDelete(int index) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this entry?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      // If confirmed, delete from the list and Firestore
+      setState(() {
+        previousPrices.removeAt(index);
+        if (_selectedPriceIndex == index) {
+          _selectedPriceIndex = -1; // Reset selection
+          priceController.clear();
+          dateController.clear();
+        } else if (_selectedPriceIndex > index) {
+          _selectedPriceIndex--;
+        }
+      });
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('items')
+            .doc(widget.docId)
+            .update({'Previous_Prices': previousPrices});
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Row deleted successfully')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete row: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with existing data
+    // Initialize controllers with safe defaults
     koduController.text = widget.item['Kodu'] ?? '';
     kaliteController.text = widget.item['Kalite'] ?? '';
     eniController.text = widget.item['Eni'] ?? '';
@@ -37,265 +95,569 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     nameController.text = widget.item['Item Name'] ?? '';
     priceController.text = widget.item['Price'] ?? '';
     dateController.text = widget.item['Date'] ?? '';
+    NOTController.text = widget.item['NOT'] ?? '';
+    previousPrices = widget.item['Previous_Prices'] ?? [];
 
-    // Initialize previous prices
-    // if (widget.item.containsKey('Previous_Prices')) {
-    //   String previousPricesString = widget.item['Previous_Prices'];
-    //   Map<String, dynamic> previousPricesMap = jsonDecode(previousPricesString);
-    //   previousPrices = previousPricesMap.entries.map((entry) {
-    //     return {
-    //       'date': DateTime.now(), // Replace with the actual date if available
-    //       'price_1_1': previousPricesMap['price_1_1'] ?? '',
-    //       'price_1_2': previousPricesMap['price_1_2'] ?? '',
-    //       'price_1_3': previousPricesMap['price_1_3'] ?? '',
-    //       'price_2_1': previousPricesMap['price_2_1'] ?? '',
-    //       'price_2_2': previousPricesMap['price_2_2'] ?? '',
-    //       'price_2_3': previousPricesMap['price_2_3'] ?? '',
-    //       'price_3_1': previousPricesMap['price_3_1'] ?? '',
-    //       'price_3_2': previousPricesMap['price_3_2'] ?? '',
-    //       'price_3_3': previousPricesMap['price_3_3'] ?? '',
-    //     };
-    //   }).toList();
-    // }
-  }
+    // Set the default selected index based on matching values
+    _selectedPriceIndex = -1; // Default to -1 (no selection)
+    for (int i = 0; i < previousPrices.length; i++) {
+      if (previousPrices[i]['price'] == priceController.text &&
+          previousPrices[i]['date'] == dateController.text) {
+        _selectedPriceIndex = i;
+        break;
+      }
+    }
 
-  Future<void> updateItemData() async {
-    // Prepare updated data
-    Map<String, dynamic> itemData = {
-      'Kodu': koduController.text,
-      'Kalite': kaliteController.text,
-      'Eni': eniController.text,
-      'Gramaj': gramajController.text,
-      'Supplier': supplierController.text,
-      'Item No.': itemNoController.text,
-      'Item Name': nameController.text,
-      'Price': priceController.text,
-      'Date': dateController.text,
-      // 'Previous_Prices': jsonEncode(previousPrices),
-    };
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('items')
-          .doc(widget.docId) // Use the document ID received from ItemsScreen
-          .update(itemData);
-
-      // Show success message or navigate back
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Item updated successfully'),
-        ),
-      );
-    } catch (e) {
-      // Handle errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update item: $e'),
-        ),
-      );
+    if (_selectedPriceIndex != -1) {
+      priceController.text = previousPrices[_selectedPriceIndex]['price'];
+      dateController.text = previousPrices[_selectedPriceIndex]['date'];
     }
   }
 
-  void addNewPrice() {
+  void _addRow() {
     setState(() {
       previousPrices.add({
-        'date': DateTime.now(), // Default to current date
-        'price_1_1': '', // Empty price initially
-        'price_1_2': '',
-        'price_1_3': '',
-        'price_2_1': '',
-        'price_2_2': '',
-        'price_2_3': '',
-        'price_3_1': '',
-        'price_3_2': '',
-        'price_3_3': '',
+        'price': '',
+        'date': '',
+        'C/F': '', // Add C/F field
       });
     });
   }
 
-  void removePrice(int index) {
-    setState(() {
-      previousPrices.removeAt(index);
-    });
-  }
+  // void _editRow(int index) async {
+  //   final price = previousPrices[index]['price'] ?? '';
+  //   final date = previousPrices[index]['date'] ?? '';
+  //
+  //   // Show a dialog to edit the row
+  //   final result = await showDialog<Map<String, String>>(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       _priceController.text = price;
+  //       _selectedDate = date;
+  //       return AlertDialog(
+  //         title: Text('Edit Price Entry', style: GoogleFonts.poppins()),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             TextField(
+  //               controller: _priceController,
+  //               keyboardType: TextInputType.number,
+  //               decoration: const InputDecoration(labelText: 'Price'),
+  //             ),
+  //             const SizedBox(height: 10),
+  //             TextButton(
+  //               onPressed: () async {
+  //                 final selectedDate = await _selectDate();
+  //                 if (selectedDate != null) {
+  //                   setState(() {
+  //                     _selectedDate = _dateFormat.format(selectedDate);
+  //                   });
+  //                 }
+  //               },
+  //               child: Text(_selectedDate.isEmpty
+  //                   ? 'Select Date'
+  //                   : 'Selected Date: $_selectedDate'),
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text('Cancel'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context, {
+  //                 'price': _priceController.text,
+  //                 'date': _selectedDate,
+  //               });
+  //             },
+  //             child: const Text('Save'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  //
+  //   if (result != null) {
+  //     setState(() {
+  //       previousPrices[index] = result;
+  //     });
+  //   }
+  // }
 
-  Future<void> showDatePickerAndSetDate(int index) async {
-    final DateTime? pickedDate = await showDatePicker(
+  Future<DateTime?> _selectDate() async {
+    final now = DateTime.now();
+    return await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
+      lastDate: DateTime(now.year + 1),
     );
+  }
 
-    if (pickedDate != null) {
-      setState(() {
-        previousPrices[index]['date'] = pickedDate;
-      });
+  Future<void> saveChangesToFirebase() async {
+    try {
+      Map<String, dynamic> updatedData = {
+        'Kodu': koduController.text,
+        'Kalite': kaliteController.text,
+        'Eni': eniController.text,
+        'Gramaj': gramajController.text,
+        'Supplier': supplierController.text,
+        'Item No': itemNoController.text,
+        'Item Name': nameController.text,
+        'Price': priceController.text,
+        'Date': dateController.text,
+        'NOT': NOTController.text,
+        'Previous_Prices': previousPrices
+            .map((entry) => {
+                  'price': entry['price'],
+                  'date': entry['date'],
+                  'C/F': entry['C/F'], // Include C/F field
+                })
+            .toList(),
+      };
+
+      await FirebaseFirestore.instance
+          .collection('items')
+          .doc(widget.docId)
+          .update(updatedData);
+
+      if (mounted) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Changes saved successfully')),
+        // );
+      }
+    } catch (e) {
+      if (mounted) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Failed to save changes: $e')),
+        // );
+      }
     }
+  }
+
+  Widget buildTextField({
+    required String prefix,
+    required String suffix,
+    required bool enabled,
+    required TextEditingController controller,
+    required String label,
+    bool obscureText = false,
+    TextInputType inputType = TextInputType.text,
+  }) {
+    return TextFormField(
+      enabled: enabled,
+      controller: controller,
+      keyboardType: inputType,
+      obscureText: obscureText,
+      decoration: InputDecoration(
+        suffix: Text(suffix),
+        prefix: Text('$prefix'),
+        labelText: label,
+        labelStyle: GoogleFonts.poppins(
+          color: Colors.grey,
+        ),
+        floatingLabelStyle: GoogleFonts.poppins(
+          color: const Color(0xffa4392f),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xffa4392f), width: 2.0),
+          borderRadius: BorderRadius.all(Radius.circular(16.0)),
+        ),
+      ),
+      cursorColor: const Color(0xffa4392f),
+      style: GoogleFonts.poppins(color: Colors.black),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter $label';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget buildEditableRow(
+    String label1,
+    TextEditingController controller1,
+    String label2,
+    TextEditingController controller2,
+    String suffix1,
+    String suffix2,
+  ) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: buildTextField(
+                  controller: controller1,
+                  label: label1,
+                  enabled: true,
+                  suffix: suffix1,
+                  prefix: ''),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: buildTextField(
+                  controller: controller2,
+                  label: label2,
+                  enabled: true,
+                  suffix: suffix2,
+                  prefix: ''),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget buildEditableCard(String label, TextEditingController controller) {
+    return Card(
+      // color: Colors.white10,
+      elevation: 10,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xffa4392f),
+              ),
+            ),
+            const SizedBox(height: 8),
+            buildTextField(
+                controller: controller,
+                label: '',
+                enabled: true,
+                suffix: '',
+                prefix: ''),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildPreviousPricesTable() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          'Previous Prices:',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xffa4392f),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Table(
+          columnWidths: {
+            0: FlexColumnWidth(1.5), // Price
+            1: FlexColumnWidth(2.2), // Date
+            2: FlexColumnWidth(1.5), // C/F
+            3: FlexColumnWidth(2), // Select (Radio Button)
+          },
+          border: TableBorder.all(color: Colors.grey),
+          children: [
+            TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Price',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Date',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'C/F', // New column header for C/F
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Select',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            ...previousPrices.asMap().entries.map((entry) {
+              final index = entry.key;
+              final priceEntry = entry.value;
+
+              return TableRow(
+                children: [
+                  TableCell(
+                    child: GestureDetector(
+                      onDoubleTap: () => _confirmDelete(index),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          cursorColor: const Color(0xffa4392f),
+                          onChanged: (value) {
+                            setState(() {
+                              previousPrices[index]['price'] = value;
+                            });
+                          },
+
+                          // Instead of creating a new TextEditingController on each build, set the text in the existing controller
+                          controller: TextEditingController.fromValue(
+                            TextEditingValue(
+                              text: previousPrices[index]['price'],
+                              selection: TextSelection.collapsed(
+                                  offset:
+                                      previousPrices[index]['price'].length),
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            prefix: Text("\$ "),
+                            isDense: true,
+                            border: InputBorder.none,
+                            hintText: 'Enter price',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final selectedDate = await _selectDate();
+                          if (selectedDate != null) {
+                            setState(() {
+                              previousPrices[index]['date'] =
+                                  _dateFormat.format(selectedDate);
+                            });
+                          }
+                        },
+                        child: AbsorbPointer(
+                          child: TextField(
+                            cursorColor: const Color(0xffa4392f),
+                            controller:
+                                TextEditingController(text: priceEntry['date']),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              hintText: 'Select date',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: GestureDetector(
+                      onDoubleTap: () => _confirmDelete(index),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          cursorColor: const Color(0xffa4392f),
+                          onChanged: (value) {
+                            setState(() {
+                              previousPrices[index]['C/F'] = value;
+                            });
+                          },
+                          // Apply the same fix here for C/F
+                          controller: TextEditingController.fromValue(
+                            TextEditingValue(
+                              text: previousPrices[index]['C/F'],
+                              selection: TextSelection.collapsed(
+                                  offset: previousPrices[index]['C/F'].length),
+                            ),
+                          ),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: InputBorder.none,
+                            hintText: 'Enter C/F',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: Radio<int>(
+                      value: index,
+                      activeColor: const Color(0xffa4392f),
+                      groupValue: _selectedPriceIndex,
+                      onChanged: (int? value) {
+                        setState(() {
+                          _selectedPriceIndex = value!;
+                          priceController.text = previousPrices[index]['price'];
+                          dateController.text = previousPrices[index]['date'];
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ],
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _addRow,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xffa4392f),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+          ),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.0),
+            child: Text(
+              'Add New Price',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Item'),
-        actions: [
-          IconButton(
-            onPressed: updateItemData,
-            icon: const Icon(Icons.save),
+    return WillPopScope(
+      onWillPop: () async {
+        await saveChangesToFirebase();
+        return true; // Allows the pop to proceed after saving
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              saveChangesToFirebase();
+              Navigator.pop(context);
+            },
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: koduController,
-              decoration: const InputDecoration(labelText: 'Kodu'),
-            ),
-            TextField(
-              controller: kaliteController,
-              decoration: const InputDecoration(labelText: 'Kalite'),
-            ),
-            TextField(
-              controller: eniController,
-              decoration: const InputDecoration(labelText: 'Eni'),
-            ),
-            TextField(
-              controller: gramajController,
-              decoration: const InputDecoration(labelText: 'Gramaj'),
-            ),
-            TextField(
-              controller: supplierController,
-              decoration: const InputDecoration(labelText: 'Supplier'),
-            ),
-            TextField(
-              controller: itemNoController,
-              decoration: const InputDecoration(labelText: 'Item No.'),
-            ),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Item Name'),
-            ),
-            TextField(
-              controller: priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
-            ),
-            TextField(
-              controller: dateController,
-              decoration: const InputDecoration(labelText: 'Date'),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Previous Prices',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+          title: Text(
+            'Edit Item',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: const Color(0xffa4392f),
+          // actions: [
+          //   IconButton(
+          //     onPressed: saveChangesToFirebase,
+          //     icon: const Icon(
+          //       Icons.save,
+          //       color: Colors.white,
+          //     ),
+          //   ),
+          // ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              buildEditableCard('Item Name', nameController),
+              const SizedBox(
+                height: 10,
               ),
-            ),
-            const SizedBox(height: 10),
-            Table(
-              border: TableBorder.all(),
-              columnWidths: const {
-                0: FlexColumnWidth(2),
-                1: FlexColumnWidth(2),
-                2: FlexColumnWidth(2),
-                3: FlexColumnWidth(1),
-              },
-              children: [
-                TableRow(
-                  children: [
-                    TableCell(
-                      child: Center(
-                        child: Text(
-                          'USD',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    TableCell(
-                      child: Center(
-                        child: Text(
-                          'C/F',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    TableCell(
-                      child: Center(
-                        child: Text(
-                          'Tarih',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    TableCell(
-                      child: Center(
-                        child: Text(
-                          'Actions',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                for (var i = 0; i < previousPrices.length; i++)
-                  TableRow(
-                    children: [
-                      TableCell(
-                        child: TextField(
-                          controller: TextEditingController(
-                            text: previousPrices[i]['price_1_1'],
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              previousPrices[i]['price_1_1'] = value;
-                            });
-                          },
-                        ),
-                      ),
-                      TableCell(
-                        child: TextField(
-                          controller: TextEditingController(
-                            text: previousPrices[i]['price_1_2'],
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              previousPrices[i]['price_1_2'] = value;
-                            });
-                          },
-                        ),
-                      ),
-                      TableCell(
-                        child: TextField(
-                          controller: TextEditingController(
-                            text: previousPrices[i]['price_1_3'],
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              previousPrices[i]['price_1_3'] = value;
-                            });
-                          },
-                        ),
-                      ),
-                      TableCell(
-                        child: IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => removePrice(i),
-                        ),
-                      ),
-                    ],
+              buildEditableRow(
+                  'Kodu', koduController, 'Kalite', kaliteController, '', ''),
+              buildEditableRow('Eni', eniController, 'Gramaj', gramajController,
+                  'CM', 'GSM'),
+              buildEditableRow('Supplier', supplierController, 'Item No.',
+                  itemNoController, '', ''),
+              const SizedBox(height: 10),
+              buildTextField(
+                  controller: NOTController,
+                  label: 'NOT',
+                  enabled: true,
+                  suffix: '',
+                  prefix: ''),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildTextField(
+                        controller: priceController,
+                        label: 'Price',
+                        enabled: false,
+                        suffix: '',
+                        prefix: '\$ '),
                   ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: addNewPrice,
-              child: const Text('Add Price'),
-            ),
-          ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AbsorbPointer(
+                      child: buildTextField(
+                        controller: dateController,
+                        label: 'Date',
+                        enabled: false,
+                        suffix: '',
+                        prefix: '',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              buildPreviousPricesTable(),
+              const SizedBox(height: 20),
+              // ElevatedButton(
+              //   onPressed: saveChangesToFirebase,
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: const Color(0xffa4392f),
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(16.0),
+              //     ),
+              //   ),
+              //   child: const Padding(
+              //     padding: EdgeInsets.symmetric(vertical: 12.0),
+              //     child: Text(
+              //       'Save Changes',
+              //       style: TextStyle(color: Colors.white),
+              //     ),
+              //   ),
+              // ),
+            ],
+          ),
         ),
       ),
     );

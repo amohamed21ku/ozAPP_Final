@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,10 +50,32 @@ class ItemsScreenState extends State<ItemsScreen> {
     'NOT': false,
     'Item No': false,
   };
+  // Save column preferences to shared preferences
+  Future<void> saveColumnPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('columnOrder', jsonEncode(columnOrder));
+    await prefs.setString('columnVisibility', jsonEncode(columnVisibility));
+  }
+
+  // Load column preferences from shared preferences
+  Future<void> loadColumnPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedOrder = prefs.getString('columnOrder');
+    String? savedVisibility = prefs.getString('columnVisibility');
+
+    if (savedOrder != null) {
+      columnOrder = List<String>.from(jsonDecode(savedOrder));
+    }
+    if (savedVisibility != null) {
+      columnVisibility = Map<String, bool>.from(jsonDecode(savedVisibility));
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    loadColumnPreferences(); // Load saved preferences
+
     fetchDataFromCache();
     fetchDataFromFirestore(true);
   }
@@ -78,7 +101,7 @@ class ItemsScreenState extends State<ItemsScreen> {
                   ignoring: false,
                   child: ReorderableListView(
                     physics:
-                        const ClampingScrollPhysics(), // Use clamping physics to prevent bouncing
+                        const BouncingScrollPhysics(), // Use clamping physics to prevent bouncing
                     onReorder: (int oldIndex, int newIndex) {
                       setState(() {
                         if (newIndex > oldIndex) {
@@ -118,6 +141,8 @@ class ItemsScreenState extends State<ItemsScreen> {
                     setState(() {
                       columnOrder = newColumnOrder;
                     });
+                    saveColumnPreferences(); // Save preferences when user confirms
+
                     Navigator.of(context).pop();
                   },
                 ),
@@ -272,20 +297,7 @@ class ItemsScreenState extends State<ItemsScreen> {
             'Supplier': filteredList[i]['Supplier'],
             'Previous_Prices': filteredList[i]['Previous_Prices'],
           });
-          // List<String> newRowValues = [
-          //   filteredList[i]['Kodu'],   // Replace with the actual item number
-          //   filteredList[i]['Kalite'],   // Replace with the actual item number
-          //   filteredList[i]['Eni'],   // Replace with the actual item number
-          //   filteredList[i]['Gramaj'],   // Replace with the actual item number
-          //   filteredList[i]['NOT'],   // Replace with the actual item number
-          //   filteredList[i]['Supplier'],   // Replace with the actual item number
-          //   filteredList[i]['Item No'],   // Replace with the actual item number
-          //   filteredList[i]['Item Name'],   // Replace with the actual item number
-          //   filteredList[i]['Price'],   // Replace with the actual item number
-          //   filteredList[i]['Date'],   // Replace with the actual item number
-          //    // Replace with the actual item number
-          //   // Replace with the actual item name
-          //   // Add more values as needed for other columns
+
           // ];
         } else {
           // Update existing item in Firebase
@@ -428,12 +440,6 @@ class ItemsScreenState extends State<ItemsScreen> {
               setState(() {
                 edit = !edit;
               });
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const EditItemScreen()),
-              // ).then((value) {
-              //   fetchDataFromFirestore();
-              // });
             },
             icon: Icon(
               edit ? Icons.edit_off : Icons.edit,
@@ -454,203 +460,214 @@ class ItemsScreenState extends State<ItemsScreen> {
           ),
         ],
       ),
-      body: ModalProgressHUD(
-        progressIndicator: const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
-          strokeWidth: 5.0,
-        ),
-        inAsyncCall: isLoading,
-        child: RefreshIndicator(
-          onRefresh: () => fetchDataFromFirestore(true),
-          color: const Color(0xffa4392f),
-          backgroundColor: Colors.grey[200],
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Visibility(
-                visible: isVisible,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Row(
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Color(0xffa4392f)), // Change spinner color to theme color
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () => fetchDataFromFirestore(true),
+              color: const Color(
+                  0xffa4392f), // Change refresh indicator color to theme color
+              backgroundColor: Colors
+                  .grey[200], // Change background color of refresh indicator
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Visibility(
+                    visible: isVisible,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: TextField(
-                              controller: searchController,
-                              onChanged: filterData,
-                              decoration: InputDecoration(
-                                labelText: 'Search',
-                                hintText: 'Search by Kodu or Name',
-                                hintStyle: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w200),
-                                labelStyle:
-                                    GoogleFonts.poppins(color: Colors.grey),
-                                prefixIcon: const Icon(Icons.search),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(width: 1),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                      color: Color(0xffa4392f), width: 2),
-                                  borderRadius: BorderRadius.circular(15.0),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: searchController,
+                                  onChanged: filterData,
+                                  decoration: InputDecoration(
+                                    labelText: 'Search',
+                                    hintText: 'Search by Kodu or Name',
+                                    hintStyle: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w200,
+                                        fontSize: 10),
+                                    labelStyle: GoogleFonts.poppins(
+                                        color: Colors.grey, fontSize: 12),
+                                    prefixIcon: const Icon(
+                                      Icons.search,
+                                      color: Colors.grey,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          width: 1, color: Colors.black45),
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          color: Color(0xffa4392f), width: 2),
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                  ),
+                                  style: GoogleFonts.poppins(fontSize: 10),
                                 ),
                               ),
-                              style: GoogleFonts.poppins(fontSize: 12),
-                            ),
+                              const SizedBox(
+                                  width:
+                                      8), // Add some space between TextField and Button
+                              IconButton(
+                                onPressed: GsheetAPI().uploadDataToFirestore,
+                                icon: const Icon(
+                                  size: 25,
+                                  Icons.cloud_download_rounded,
+                                  color: Color(0xffa4392f),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed:
+                                    // saveChangesToFirebase,
+                                    GsheetAPI().uploadDataToGoogleSheet,
+                                icon: const Icon(
+                                  size: 25,
+                                  Icons.save,
+                                  color: Color(0xffa4392f),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(
-                              width:
-                                  8), // Add some space between TextField and Button
-                          IconButton(
-                            onPressed: GsheetAPI().uploadDataToFirestore,
-                            icon: const Icon(
-                              size: 25,
-                              Icons.cloud_download_rounded,
-                              color: Color(0xffa4392f),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: saveChangesToFirebase,
-                            // GsheetAPI().uploadDataToGoogleSheet,
-
-                            icon: const Icon(
-                              size: 25,
-                              Icons.save,
-                              color: Color(0xffa4392f),
-                            ),
+                          const SizedBox(height: 5),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(
+                                'Item Count: ${filteredList.length}',
+                                style: GoogleFonts.poppins(
+                                    color: Colors.black, fontSize: 14),
+                              ),
+                              GestureDetector(
+                                onTap: showColumnSelector,
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: showColumnSelector,
+                                      icon: const Icon(
+                                        size: 20,
+                                        Icons.view_column,
+                                        color: Color(0xffa4392f),
+                                      ),
+                                    ),
+                                    Text(
+                                      'Select Columns',
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(0xffa4392f),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(
-                            'Item Count: ${filteredList.length}',
-                            style: GoogleFonts.poppins(
-                                color: Colors.black, fontSize: 14),
-                          ),
-                          GestureDetector(
-                            onTap: showColumnSelector,
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  onPressed: showColumnSelector,
-                                  icon: const Icon(
-                                    size: 20,
-                                    Icons.view_column,
-                                    color: Color(0xffa4392f),
-                                  ),
-                                ),
-                                Text(
-                                  'Select Columns',
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xffa4392f),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Card(
-                  color: const Color(0xffa4392f),
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(isVisible ? 10.0 : 0.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                      children: columnOrder
-                          .where((column) => columnVisibility[column]!)
-                          .map((column) => Expanded(
-                                child: Text(
-                                  column,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ))
-                          .toList(),
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredList.length,
-                  itemBuilder: (context, index) {
-                    return edit
-                        ? EditCard(
-                            index: index,
-                            item: filteredList[index],
-                            onDelete: (int index) {
-                              deleteItem(index);
-                            },
-                            selectDate: _selectDate,
-                            confirmDeleteItem: confirmDeleteItem,
-                            columnOrder: columnOrder,
-                            columnVisibility: columnVisibility,
-                          )
-                        : GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ItemDetailsScreen(
-                                    item: filteredList[index],
-                                    docId: filteredList[index]['id'],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      color: const Color(0xffa4392f),
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(isVisible ? 10.0 : 0.0),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          children: columnOrder
+                              .where((column) => columnVisibility[column]!)
+                              .map((column) => Expanded(
+                                    child: Text(
+                                      column,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        return edit
+                            ? EditCard(
+                                index: index,
+                                item: filteredList[index],
+                                onDelete: (int index) {
+                                  deleteItem(index);
+                                },
+                                selectDate: _selectDate,
+                                confirmDeleteItem: confirmDeleteItem,
+                                columnOrder: columnOrder,
+                                columnVisibility: columnVisibility,
+                              )
+                            : GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ItemDetailsScreen(
+                                        item: filteredList[index],
+                                        docId: filteredList[index]['id'],
+                                      ),
+                                    ),
+                                  ).then((_) {
+                                    fetchDataFromFirestore(true);
+                                  });
+                                },
+                                child: Card(
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 5, horizontal: 10),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Row(
+                                      children: columnOrder
+                                          .where((column) =>
+                                              columnVisibility[column]!)
+                                          .map((column) {
+                                        final value = filteredList[index]
+                                                [column] ??
+                                            filteredList[index]['Item $column'];
+                                        return Expanded(
+                                          child: Text(
+                                            column == 'Date' && value is int
+                                                ? formatDateString(
+                                                    excelSerialDateToDateTime(
+                                                        value))
+                                                : value.toString(),
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
                                   ),
                                 ),
                               );
-                            },
-                            child: Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 10),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Row(
-                                  children: columnOrder
-                                      .where(
-                                          (column) => columnVisibility[column]!)
-                                      .map((column) {
-                                    final value = filteredList[index][column] ??
-                                        filteredList[index]['Item $column'];
-                                    return Expanded(
-                                      child: Text(
-                                        column == 'Date' && value is int
-                                            ? formatDateString(
-                                                excelSerialDateToDateTime(
-                                                    value))
-                                            : value.toString(),
-                                        style:
-                                            GoogleFonts.poppins(fontSize: 12),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ),
-                          );
-                  },
-                ),
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
       floatingActionButton: edit
           ? FloatingActionButton(
               onPressed: addNewItem,

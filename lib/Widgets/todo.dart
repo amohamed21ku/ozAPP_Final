@@ -276,6 +276,7 @@ class _CalendarPageState extends State<CalendarPage> {
       statusBarColor: Colors.transparent, // optional
     ));
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text('Calendar Events',

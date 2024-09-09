@@ -345,364 +345,357 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget buildHomePage() {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
 
-    return Container(
-      color: Colors.white,
-      // padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back,',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black38,
-                      ),
-                    ),
-                    Text(
-                      currentUser.name,
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () {
-                    _onItemTapped(2);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(2.0),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xffa4392f),
-                        width: 3.0,
-                      ),
-                    ),
-                    alignment: Alignment.topRight,
-                    child: Hero(
-                      tag: 'profile_pic',
-                      child: CircleAvatar(
-                        radius: 30.0,
-                        backgroundImage: currentUser.profilePicture != null
-                            ? CachedNetworkImageProvider(
-                                currentUser.profilePicture!)
-                            : const AssetImage('images/man.png')
-                                as ImageProvider,
-                      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: ListView(
+        physics: const BouncingScrollPhysics(),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back,',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black38,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: RoundedButtonSmall(
-                    colour: Colors.white,
-                    title: 'Items',
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'itemsscreen');
-                    },
-                    width: 10,
-                    height: 100,
-                    icon: Icons.list_alt,
-                    iconColor: const Color(0xffa4392f),
-                    textcolor: Colors.black,
+                  Text(
+                    currentUser.name,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: RoundedButtonSmall(
-                    colour: Colors.white,
-                    title: 'Customers',
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'customerscreen');
-                    },
-                    width: 0,
-                    height: 100,
-                    icon: Icons.person,
-                    iconColor: const Color(0xffa4392f),
-                    textcolor: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: RoundedButtonSmall(
-                    colour: Colors.white,
-                    title: 'Sheet',
-                    onPressed: () {
-                      Navigator.pushNamed(context, "balancesheet");
-                    },
-                    width: 10,
-                    height: 100,
-                    icon: Icons.newspaper,
-                    iconColor: const Color(0xffa4392f),
-                    textcolor: Colors.black,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: RoundedButtonSmall(
-                    colour: Colors.white,
-                    title: 'Users',
-                    onPressed: () {
-                      Navigator.pushNamed(context, "usersscreen");
-                    },
-                    width: 0,
-                    height: 100,
-                    icon: Icons.supervised_user_circle_outlined,
-                    iconColor: const Color(0xffa4392f),
-                    textcolor: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(child: Container(height: 2, color: Colors.black26)),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Card(
-              color: const Color(0xbba4392f),
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Today\'s Tasks',
-                              style: GoogleFonts.poppins(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white70,
-                              ),
+              GestureDetector(
+                onTap: () {
+                  _onItemTapped(2);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xffa4392f),
+                      width: 3.0,
+                    ),
+                  ),
+                  alignment: Alignment.topRight,
+                  child: Hero(
+                    tag: 'profile_pic',
+                    child: CircleAvatar(
+                      radius: 30.0,
+                      backgroundImage: currentUser.profilePicture != null
+                          ? CachedNetworkImageProvider(
+                              currentUser.profilePicture!)
+                          : const AssetImage('images/man.png') as ImageProvider,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: RoundedButtonSmall(
+                  colour: Colors.white,
+                  title: 'Items',
+                  onPressed: () {
+                    Navigator.pushNamed(context, 'itemsscreen');
+                  },
+                  width: 10,
+                  height: 100,
+                  icon: Icons.list_alt,
+                  iconColor: const Color(0xffa4392f),
+                  textcolor: Colors.black,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RoundedButtonSmall(
+                  colour: Colors.white,
+                  title: 'Customers',
+                  onPressed: () {
+                    Navigator.pushNamed(context, 'customerscreen');
+                  },
+                  width: 0,
+                  height: 100,
+                  icon: Icons.person,
+                  iconColor: const Color(0xffa4392f),
+                  textcolor: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(
+            height: 8,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: RoundedButtonSmall(
+                  colour: Colors.white,
+                  title: 'Sheet',
+                  onPressed: () {
+                    Navigator.pushNamed(context, "balancesheet");
+                  },
+                  width: 10,
+                  height: 100,
+                  icon: Icons.newspaper,
+                  iconColor: const Color(0xffa4392f),
+                  textcolor: Colors.black,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RoundedButtonSmall(
+                  colour: Colors.white,
+                  title: 'Users',
+                  onPressed: () {
+                    Navigator.pushNamed(context, "usersscreen");
+                  },
+                  width: 0,
+                  height: 100,
+                  icon: Icons.supervised_user_circle_outlined,
+                  iconColor: const Color(0xffa4392f),
+                  textcolor: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(child: Container(height: 2, color: Colors.black26)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Card(
+            color: const Color(0xbba4392f),
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Today\'s Tasks',
+                            style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white70,
                             ),
-                            Row(
-                              children: [
-                                IconButton(
-                                    onPressed: _refreshEvents,
-                                    icon: const Icon(
-                                      size: 25,
-                                      Icons.refresh,
-                                      color: Colors.white,
-                                    )),
-                                IconButton(
-                                  onPressed: _showAddEventDialog,
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                  onPressed: _refreshEvents,
                                   icon: const Icon(
                                     size: 25,
-                                    Icons.add,
+                                    Icons.refresh,
                                     color: Colors.white,
+                                  )),
+                              IconButton(
+                                onPressed: _showAddEventDialog,
+                                icon: const Icon(
+                                  size: 25,
+                                  Icons.add,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics:
+                        const BouncingScrollPhysics(), // You can choose different scroll physics
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      final event = events[index];
+
+                      // Ensure timestampString is not null before parsing
+
+                      return Dismissible(
+                        direction:
+                            DismissDirection.startToEnd, // Swipe direction
+
+                        key: UniqueKey(),
+                        confirmDismiss: (direction) async {
+                          return await showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(
+                                  'Confirm Delete',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(
+                                        0xffa4392f), // Specify the color
                                   ),
                                 ),
+                                content: Text(
+                                  'Do you want to delete this Task?',
+                                  style: GoogleFonts
+                                      .poppins(), // Use default Poppins style
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(false); // Cancel deletion
+                                    },
+                                    child: Text(
+                                      'No',
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(
+                                            0xffa4392f), // Specify the color
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pop(true); // Confirm deletion
+                                    },
+                                    child: Text(
+                                      'Yes',
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(
+                                            0xffa4392f), // Specify the color
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        background: Container(
+                          color: Colors.white70,
+                          alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onDismissed: (direction) async {
+                          await _deleteEventFromFirestore(index);
+                        },
+                        child: Card(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12.0,
+                              horizontal: 15.0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    final docId = event['docId'];
+
+                                    if (docId != null) {
+                                      final docRef = FirebaseFirestore.instance
+                                          .collection('events')
+                                          .doc(docId);
+
+                                      try {
+                                        // Toggle the 'isChecked' value in Firestore
+                                        await docRef.update({
+                                          'isChecked': !event[
+                                              'isChecked'], // Toggle the value
+                                        });
+
+                                        // Update local state if needed
+                                        setState(() {
+                                          event['isChecked'] =
+                                              !event['isChecked'];
+                                        });
+                                      } catch (e) {
+                                        // print("Error updating Firestore: $e");
+                                      }
+                                    } else {
+                                      // print("Document ID is null. Cannot update Firestore.");
+                                    }
+                                  },
+                                  child: Icon(
+                                    event['isChecked']
+                                        ? Icons.check_circle
+                                        : Icons.task_alt,
+                                    size: 30.0,
+                                    color: const Color(0xffa4392f),
+                                  ),
+                                ),
+                                const SizedBox(
+                                    width:
+                                        15), // Add spacing between the icon and text if needed
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        event['title'] ?? 'No Title',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        '  ${event['description'] ?? 'No Description'}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons
+                                      .arrow_forward_ios, // Replace `some_other_icon` with the icon you want to use when `isUser` is false
+                                  size: 15,
+                                )
                               ],
                             ),
-                          ],
+                          ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics:
-                          const BouncingScrollPhysics(), // You can choose different scroll physics
-                      itemCount: events.length,
-                      itemBuilder: (context, index) {
-                        final event = events[index];
-
-                        // Ensure timestampString is not null before parsing
-
-                        return Dismissible(
-                          direction:
-                              DismissDirection.startToEnd, // Swipe direction
-
-                          key: UniqueKey(),
-                          confirmDismiss: (direction) async {
-                            return await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text(
-                                    'Confirm Delete',
-                                    style: GoogleFonts.poppins(
-                                      color: const Color(
-                                          0xffa4392f), // Specify the color
-                                    ),
-                                  ),
-                                  content: Text(
-                                    'Do you want to delete this Task?',
-                                    style: GoogleFonts
-                                        .poppins(), // Use default Poppins style
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(false); // Cancel deletion
-                                      },
-                                      child: Text(
-                                        'No',
-                                        style: GoogleFonts.poppins(
-                                          color: const Color(
-                                              0xffa4392f), // Specify the color
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(true); // Confirm deletion
-                                      },
-                                      child: Text(
-                                        'Yes',
-                                        style: GoogleFonts.poppins(
-                                          color: const Color(
-                                              0xffa4392f), // Specify the color
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          background: Container(
-                            color: Colors.white70,
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                          onDismissed: (direction) async {
-                            await _deleteEventFromFirestore(index);
-                          },
-                          child: Card(
-                            elevation: 5,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12.0,
-                                horizontal: 15.0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () async {
-                                      final docId = event['docId'];
-
-                                      if (docId != null) {
-                                        final docRef = FirebaseFirestore
-                                            .instance
-                                            .collection('events')
-                                            .doc(docId);
-
-                                        try {
-                                          // Toggle the 'isChecked' value in Firestore
-                                          await docRef.update({
-                                            'isChecked': !event[
-                                                'isChecked'], // Toggle the value
-                                          });
-
-                                          // Update local state if needed
-                                          setState(() {
-                                            event['isChecked'] =
-                                                !event['isChecked'];
-                                          });
-                                        } catch (e) {
-                                          // print("Error updating Firestore: $e");
-                                        }
-                                      } else {
-                                        // print("Document ID is null. Cannot update Firestore.");
-                                      }
-                                    },
-                                    child: Icon(
-                                      event['isChecked']
-                                          ? Icons.check_circle
-                                          : Icons.task_alt,
-                                      size: 30.0,
-                                      color: const Color(0xffa4392f),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                      width:
-                                          15), // Add spacing between the icon and text if needed
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          event['title'] ?? 'No Title',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          '  ${event['description'] ?? 'No Description'}',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 13,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons
-                                        .arrow_forward_ios, // Replace `some_other_icon` with the icon you want to use when `isUser` is false
-                                    size: 15,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  ],
-                ),
+                      );
+                    },
+                  )
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -712,6 +705,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildProfilePage() {
-    return ProfilePage(currentUser: currentUser);
+    // return ProfilePage(currentUser: currentUser);
+    return ProfileScreen(currentUser: currentUser);
   }
 }
