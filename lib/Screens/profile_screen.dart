@@ -76,11 +76,12 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'John Doe', // Replace tProfileHeading with actual text
+                currentUser.name, // Replace tProfileHeading with actual text
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               Text(
-                'john.doe@example.com', // Replace tProfileSubHeading with actual text
+                currentUser
+                    .email, // Replace tProfileSubHeading with actual text
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 20),
