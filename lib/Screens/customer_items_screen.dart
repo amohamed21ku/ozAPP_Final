@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import '../Widgets/mycard.dart'; // Assuming mycard.dart is in a separate folder named Widgets
+import '../Widgets/mycard.dart';
 import '../models/Customers.dart';
 
 class CustomerItemsScreen extends StatefulWidget {
@@ -16,7 +16,9 @@ class CustomerItemsScreen extends StatefulWidget {
 
 class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
   List<Map<String, dynamic>> items = [];
+  List<Map<String, dynamic>> filteredItems = [];
   bool isLoading = false;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -26,8 +28,8 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
 
   @override
   void dispose() {
+    searchController.dispose();
     super.dispose();
-    // Dispose any resources here if needed
   }
 
   Future<void> fetchData() async {
@@ -40,7 +42,8 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
           .get();
 
       if (documentSnapshot.exists) {
-        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        Map<String, dynamic> data =
+            documentSnapshot.data() as Map<String, dynamic>;
         Map<String, dynamic> itemsMap = data['items'] as Map<String, dynamic>;
 
         List<Map<String, dynamic>> fetchedItems = [];
@@ -58,6 +61,7 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
 
         setState(() {
           items = fetchedItems;
+          filteredItems = fetchedItems; // Initially display all items
         });
       }
     } catch (e) {
@@ -67,6 +71,16 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
         setState(() => isLoading = false);
       }
     }
+  }
+
+  void filterData(String query) {
+    setState(() {
+      filteredItems = items
+          .where((item) =>
+              item['kodu'].toLowerCase().contains(query.toLowerCase()) ||
+              item['name'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
   }
 
   void addItem() {
@@ -80,12 +94,14 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
         'yardage': false,
         'hanger': false,
       });
+      filterData(searchController.text); // Refresh filtered items after adding
     });
   }
 
   void removeItem(int index) {
     setState(() {
       items.removeAt(index);
+      filterData(searchController.text); // Refresh filtered items after removal
     });
   }
 
@@ -149,18 +165,43 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  'Customer: ${widget.customer.name}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              TextField(
+                controller: searchController,
+                onChanged: filterData,
+                decoration: InputDecoration(
+                  labelText: 'Search',
+                  hintText: 'Search by Kodu or Name',
+                  hintStyle: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w200, fontSize: 10),
+                  labelStyle:
+                      GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Colors.grey,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(width: 1, color: Colors.black45),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        const BorderSide(color: Color(0xffa4392f), width: 2),
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
                 ),
+                style: GoogleFonts.poppins(fontSize: 10),
               ),
+              const SizedBox(
+                  height: 10), // Add some space between the search bar and list
               Expanded(
                 child: ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {
+                    // Use the item's 'id' field as the unique key.
                     return MyCard(
+                      key: ValueKey(
+                          items[index]['id']), // Unique key for each item
                       kodu: items[index]['kodu'],
                       name: items[index]['name'],
                       date: items[index]['date'],
@@ -204,6 +245,7 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
                   },
                 ),
               ),
+
               Row(
                 children: [
                   Expanded(
@@ -215,10 +257,10 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
                           backgroundColor: const Color(0xffa4392f),
                           padding: const EdgeInsets.symmetric(vertical: 15.0),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.0), // Adjust the border radius value as needed
+                            borderRadius: BorderRadius.circular(14.0),
                           ),
                         ),
-                        icon: const Icon(Icons.save, color: Colors.white), // Add your desired icon here
+                        icon: const Icon(Icons.save, color: Colors.white),
                         label: const Text(
                           'Save',
                           style: TextStyle(

@@ -7,8 +7,9 @@ import 'package:oz/Screens/login_screen.dart';
 import 'package:oz/Screens/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../Widgets/buildtodo.dart';
 import '../Widgets/components.dart';
-import '../Widgets/todo.dart';
+import '../Widgets/calendar.dart';
 import '../models/user.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -128,110 +129,406 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showAddEventDialog() {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
+    final TextEditingController koduController = TextEditingController();
+    final TextEditingController priceController = TextEditingController();
+    final TextEditingController nameController =
+        TextEditingController(); // New controller
+
+    bool isGivingSample = false;
+    bool yardage = false;
+    bool hanger = false;
+    String selectedCustomer = '';
+    String selectedCustomerId =
+        ''; // To store the selected customer's document ID
+    List<String> customers = []; // Will be populated from Firestore
+    Map<String, String> customerIds = {}; // To map customer names to IDs
+
+    // Fetch customers from Firestore
+    Future<void> fetchCustomers() async {
+      try {
+        QuerySnapshot snapshot =
+            await FirebaseFirestore.instance.collection('customers').get();
+        setState(() {
+          customers =
+              snapshot.docs.map((doc) => doc['name'].toString()).toList();
+          customerIds = {for (var doc in snapshot.docs) doc['name']: doc.id};
+        });
+      } catch (e) {
+        print('Error fetching customers: $e');
+      }
+    }
+
+    // Call fetchCustomers to load customer data
+    fetchCustomers();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(20.0), // Adjust the corner radius
-            side: const BorderSide(
-              color: Colors.grey, // Border color
-              width: 2.0, // Border width
-            ),
-          ),
-          backgroundColor: const Color(0xffa4392f),
-          title: Text(
-            'Add Task',
-            style: GoogleFonts.poppins(color: Colors.white), // Title text color
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: 'Task Name',
-                  labelStyle: GoogleFonts.poppins(
-                      color: Colors.white), // Title text color
-                  // Input label text color
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Colors.white), // Input border color
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Colors.white), // Focused input border color
-                  ),
-                ),
-                style: GoogleFonts.poppins(color: Colors.white),
-                cursorColor: Colors.white, // Input text color
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: AlertDialog(
+            scrollable: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
+              side: const BorderSide(
+                color: Colors.grey,
+                width: 2.0,
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Description (optional)',
-                  labelStyle: GoogleFonts.poppins(
-                      color: Colors.white), // Title text color
-                  // Input label text color
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Colors.white), // Input border color
+            ),
+            backgroundColor: const Color(0xffa4392f),
+            title: Text(
+              'Add Task',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white12,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                      dropdownColor: Colors.grey,
+                      iconEnabledColor: Colors.white,
+                      value: isGivingSample ? 'Giving Sample' : 'Normal Task',
+                      style: GoogleFonts.poppins(color: Colors.white),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'Normal Task',
+                          child: Text('Normal Task',
+                              style: GoogleFonts.poppins(color: Colors.white)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Giving Sample',
+                          child: Text('Giving Sample',
+                              style: GoogleFonts.poppins(color: Colors.white)),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          isGivingSample = value == 'Giving Sample';
+                        });
+                      },
+                    ),
+                    if (!isGivingSample) ...[
+                      TextField(
+                        controller: titleController,
+                        decoration: InputDecoration(
+                          labelText: 'Task Name',
+                          labelStyle: GoogleFonts.poppins(color: Colors.white),
+                          enabledBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                        style: GoogleFonts.poppins(color: Colors.white),
+                        cursorColor: Colors.white,
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(
+                          labelText: 'Description (optional)',
+                          labelStyle: GoogleFonts.poppins(color: Colors.white),
+                          enabledBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                          focusedBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                          ),
+                        ),
+                        style: GoogleFonts.poppins(color: Colors.white),
+                        cursorColor: Colors.white,
+                      ),
+                    ] else ...[
+                      // Dropdown with fetched customers
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white,
+                              width: 2.0,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.white12,
+                              width: 2.0,
+                            ),
+                          ),
+                        ),
+                        dropdownColor: Colors.grey,
+                        value:
+                            selectedCustomer.isEmpty ? null : selectedCustomer,
+                        hint: Text('Select Customer',
+                            style: GoogleFonts.poppins(color: Colors.white)),
+                        items: customers.map((customer) {
+                          return DropdownMenuItem(
+                            value: customer,
+                            child: Text(customer,
+                                style:
+                                    GoogleFonts.poppins(color: Colors.white)),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedCustomer = value!;
+                            selectedCustomerId = customerIds[value]!;
+                          });
+                        },
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: koduController,
+                              decoration: InputDecoration(
+                                labelText: 'Kodu',
+                                labelStyle:
+                                    GoogleFonts.poppins(color: Colors.white),
+                                enabledBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                              ),
+                              style: GoogleFonts.poppins(color: Colors.white),
+                              cursorColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: nameController,
+                              decoration: InputDecoration(
+                                labelText: 'Name',
+                                labelStyle:
+                                    GoogleFonts.poppins(color: Colors.white),
+                                enabledBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                              ),
+                              style: GoogleFonts.poppins(color: Colors.white),
+                              cursorColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: priceController,
+                              decoration: InputDecoration(
+                                labelText: 'Price',
+                                labelStyle:
+                                    GoogleFonts.poppins(color: Colors.white),
+                                enabledBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                                focusedBorder: const UnderlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                ),
+                              ),
+                              style: GoogleFonts.poppins(color: Colors.white),
+                              cursorColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: CheckboxListTile(
+                              title: Text(
+                                'Hanger',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow
+                                    .visible, // Ensures text wraps to the next line
+                              ),
+                              value: hanger,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  hanger = value!;
+                                });
+                              },
+                              activeColor: Colors.white,
+                              checkColor: Colors.black,
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity
+                                  .leading, // Checkbox at the start
+                            ),
+                          ),
+                          Flexible(
+                            child: CheckboxListTile(
+                              title: Text(
+                                'Yardage',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow
+                                    .visible, // Ensures text wraps to the next line
+                              ),
+                              value: yardage,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  yardage = value!;
+                                });
+                              },
+                              activeColor: Colors.white,
+                              checkColor: Colors.black,
+                              contentPadding: EdgeInsets.zero,
+                              controlAffinity: ListTileControlAffinity
+                                  .leading, // Checkbox at the start
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.poppins(color: Colors.white),
+                      ),
+                    ),
                   ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Colors.white), // Focused input border color
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (!isGivingSample) {
+                          _addEvent(
+                            titleController.text,
+                            descriptionController.text.isEmpty
+                                ? ''
+                                : descriptionController.text,
+                          );
+                        } else {
+                          _addSampleEvent(
+                            selectedCustomer,
+                            koduController.text,
+                            nameController.text,
+                            priceController.text,
+
+                            yardage,
+                            hanger,
+                            selectedCustomerId, // Pass the customer document ID
+                          );
+                          _refreshEvents();
+                        }
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Add',
+                        style: GoogleFonts.poppins(color: Colors.black),
+                      ),
+                    ),
                   ),
-                ),
-                style: GoogleFonts.poppins(color: Colors.white),
-                cursorColor: Colors.white, // Input text color
+                ],
               ),
             ],
           ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'Cancel',
-                      style: GoogleFonts.poppins(
-                          color: Colors.white), // Title text color
-                      // Button text color
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _addEvent(
-                          titleController.text,
-                          descriptionController.text.isEmpty
-                              ? ''
-                              : descriptionController.text);
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'Add',
-                      style: GoogleFonts.poppins(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         );
       },
     );
+  }
+
+  //
+  Future<void> addItemToCustomer(String docId, String name, String kodu,
+      String price, bool hanger, bool yardage) async {
+    try {
+      // Get the current date
+      DateTime now = DateTime.now();
+      String formattedDate =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+      // Reference to the specific document in the 'customers' collection
+      DocumentReference customerDoc =
+          FirebaseFirestore.instance.collection('customers').doc(docId);
+
+      // Create the new item data
+      Map<String, dynamic> newItem = {
+        'name': name,
+        'kodu': kodu,
+        'price': price,
+        'hanger': hanger,
+        'yardage': yardage,
+        'date': formattedDate,
+      };
+
+      // Update the 'items' field with the new item
+      await customerDoc.update({
+        'items': FieldValue.arrayUnion([newItem]),
+      });
+
+      print('Item added successfully!');
+    } catch (e) {
+      print('Error adding item: $e');
+    }
+  }
+
+// Add Event to Firestore
+  void _addSampleEvent(
+    String customerName,
+    String kodu,
+    String name,
+    String price,
+    bool yardage,
+    bool hanger,
+    String customerId,
+  ) {
+    FirebaseFirestore.instance.collection('events').add({
+      'Task': 'Giving Sample to $customerName',
+      'Description': 'Kodu: $kodu , Price: \$$price',
+      'isChecked': false,
+      'Kodu': kodu,
+      'Name': name,
+      'Price': price,
+      'Yardage': yardage,
+      'Hanger': hanger,
+      'CustomerId': customerId, // Store the customer document ID
+    });
   }
 
   void initial() async {
@@ -268,6 +565,12 @@ class _HomeScreenState extends State<HomeScreen> {
               'title': doc.data()['Task'] ?? 'No Title',
               'description': doc.data()['Description'] ?? 'No Description',
               'isChecked': doc.data()['isChecked'] ?? false,
+              'Kodu': doc.data()['Kodu'],
+              'Name': doc.data()['Name'],
+              'Price': doc.data()['Price'],
+              'Yardage': doc.data()['Yardage'],
+              'Hanger': doc.data()['Hanger'],
+              'CustomerId': doc.data()['CustomerId'],
             })
         .toList();
 
@@ -309,8 +612,9 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const NeverScrollableScrollPhysics(),
           children: [
             buildHomePage(),
-            buildToDoPage(),
+            buildCalendarPage(),
             buildProfilePage(),
+            buildtodo(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
@@ -320,9 +624,13 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icon(Icons.home),
               label: 'Home',
             ),
+            // BottomNavigationBarItem(
+            //   icon: Icon(Icons.task_alt),
+            //   label: 'To-DO',
+            // ),
             BottomNavigationBarItem(
               icon: Icon(Icons.today),
-              label: 'ToDo',
+              label: 'Calender',
             ),
             BottomNavigationBarItem(
               icon: Icon(
@@ -479,233 +787,66 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          Card(
-            color: const Color(0xbba4392f),
-            elevation: 5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Today\'s Tasks',
-                            style: GoogleFonts.poppins(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              IconButton(
-                                  onPressed: _refreshEvents,
-                                  icon: const Icon(
-                                    size: 25,
-                                    Icons.refresh,
-                                    color: Colors.white,
-                                  )),
-                              IconButton(
-                                onPressed: _showAddEventDialog,
-                                icon: const Icon(
-                                  size: 25,
-                                  Icons.add,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics:
-                        const BouncingScrollPhysics(), // You can choose different scroll physics
-                    itemCount: events.length,
-                    itemBuilder: (context, index) {
-                      final event = events[index];
-
-                      // Ensure timestampString is not null before parsing
-
-                      return Dismissible(
-                        direction:
-                            DismissDirection.startToEnd, // Swipe direction
-
-                        key: UniqueKey(),
-                        confirmDismiss: (direction) async {
-                          return await showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text(
-                                  'Confirm Delete',
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(
-                                        0xffa4392f), // Specify the color
-                                  ),
-                                ),
-                                content: Text(
-                                  'Do you want to delete this Task?',
-                                  style: GoogleFonts
-                                      .poppins(), // Use default Poppins style
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(false); // Cancel deletion
-                                    },
-                                    child: Text(
-                                      'No',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(
-                                            0xffa4392f), // Specify the color
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(true); // Confirm deletion
-                                    },
-                                    child: Text(
-                                      'Yes',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(
-                                            0xffa4392f), // Specify the color
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        background: Container(
-                          color: Colors.white70,
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(
-                            Icons.delete,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onDismissed: (direction) async {
-                          await _deleteEventFromFirestore(index);
-                        },
-                        child: Card(
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12.0,
-                              horizontal: 15.0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () async {
-                                    final docId = event['docId'];
-
-                                    if (docId != null) {
-                                      final docRef = FirebaseFirestore.instance
-                                          .collection('events')
-                                          .doc(docId);
-
-                                      try {
-                                        // Toggle the 'isChecked' value in Firestore
-                                        await docRef.update({
-                                          'isChecked': !event[
-                                              'isChecked'], // Toggle the value
-                                        });
-
-                                        // Update local state if needed
-                                        setState(() {
-                                          event['isChecked'] =
-                                              !event['isChecked'];
-                                        });
-                                      } catch (e) {
-                                        // print("Error updating Firestore: $e");
-                                      }
-                                    } else {
-                                      // print("Document ID is null. Cannot update Firestore.");
-                                    }
-                                  },
-                                  child: Icon(
-                                    event['isChecked']
-                                        ? Icons.check_circle
-                                        : Icons.task_alt,
-                                    size: 30.0,
-                                    color: const Color(0xffa4392f),
-                                  ),
-                                ),
-                                const SizedBox(
-                                    width:
-                                        15), // Add spacing between the icon and text if needed
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        event['title'] ?? 'No Title',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        '  ${event['description'] ?? 'No Description'}',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons
-                                      .arrow_forward_ios, // Replace `some_other_icon` with the icon you want to use when `isUser` is false
-                                  size: 15,
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                ],
-              ),
-            ),
-          ),
+          GestureDetector(
+              onTap: () {
+                _pageController.jumpToPage(3);
+              },
+              child: BuildToDo(
+                events: events,
+                refreshEvents: _refreshEvents,
+                showAddEventDialog: _showAddEventDialog,
+                deleteEventFromFirestore: _deleteEventFromFirestore,
+                showadd: true,
+              )),
         ],
       ),
     );
   }
 
-  Widget buildToDoPage() {
+  Widget buildCalendarPage() {
     return CalendarPage(currentUser: currentUser);
   }
 
   Widget buildProfilePage() {
     // return ProfilePage(currentUser: currentUser);
     return ProfileScreen(currentUser: currentUser);
+  }
+
+  Widget buildtodo() {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title:
+            Text('Tasks ToDo', style: GoogleFonts.poppins(color: Colors.white)),
+        backgroundColor: const Color(0xffa4392f),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.refresh,
+              color: Colors.white,
+            ),
+            onPressed: _refreshEvents,
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+            onPressed: _showAddEventDialog,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: BuildToDo(
+          showadd: false,
+          events: events,
+          refreshEvents: _refreshEvents,
+          showAddEventDialog: _showAddEventDialog,
+          deleteEventFromFirestore: _deleteEventFromFirestore,
+        ),
+      ),
+    );
   }
 }

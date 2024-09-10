@@ -25,8 +25,6 @@ class _SpreadsheetState extends State<Spreadsheet> {
   final List<TextEditingController> _unitPriceControllers = [];
   final List<TextEditingController> _amountControllers = [];
 
-
-
   double otherExpenseTotal = 0.0;
 
   @override
@@ -39,7 +37,7 @@ class _SpreadsheetState extends State<Spreadsheet> {
     setState(() => isLoading = true);
 
     DocumentSnapshot customerDoc =
-    await _firestore.collection('customers').doc(customer.cid).get();
+        await _firestore.collection('customers').doc(customer.cid).get();
     if (customerDoc.exists) {
       Map<String, dynamic> goods = customerDoc['goods'];
       goods.forEach((key, value) {
@@ -72,8 +70,6 @@ class _SpreadsheetState extends State<Spreadsheet> {
     setState(() => isLoading = false);
   }
 
-
-
   @override
   void dispose() {
     for (var controller in _descriptionControllers) {
@@ -103,28 +99,31 @@ class _SpreadsheetState extends State<Spreadsheet> {
       };
     }
 
-    // Include other expenses in the updatedGoods map
-    for (int i = 0; i < _otherExpenses.length; i++) {
-      updatedGoods['other_expense_$i'] = {
-        'description': _otherExpenses[i]['description'],
-        'amount': _otherExpenses[i]['amount'],
-      };
-    }
+    // // Include other expenses in the updatedGoods map
+    // for (int i = 0; i < _otherExpenses.length; i++) {
+    //   updatedGoods['other_expense_$i'] = {
+    //     'description': _otherExpenses[i]['description'],
+    //     'amount': _otherExpenses[i]['amount'],
+    //   };
+    // }
 
     await _firestore.collection('customers').doc(widget.customer.cid).update({
       'goods': updatedGoods,
     });
   }
 
-
   void _addNewRow() {
     setState(() {
-      _data.add({'description': '', 'quantity': 0.0, 'unitPrice': 0.0 , 'amount':0.0});
+      _data.add({
+        'description': '',
+        'quantity': 0.0,
+        'unitPrice': 0.0,
+        'amount': 0.0
+      });
       _descriptionControllers.add(TextEditingController());
       _quantityControllers.add(TextEditingController());
       _unitPriceControllers.add(TextEditingController());
       _amountControllers.add(TextEditingController());
-
     });
   }
 
@@ -139,16 +138,11 @@ class _SpreadsheetState extends State<Spreadsheet> {
       _quantityControllers.removeAt(index);
       _unitPriceControllers.removeAt(index);
       _amountControllers.removeAt(index);
-
     });
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xffa4392f),
@@ -162,7 +156,10 @@ class _SpreadsheetState extends State<Spreadsheet> {
             Navigator.pop(context);
           },
         ),
-        title:  Text('Balance Sheet',style: GoogleFonts.poppins(fontSize: 20,color: Colors.white),),
+        title: Text(
+          'Balance Sheet',
+          style: GoogleFonts.poppins(fontSize: 20, color: Colors.white),
+        ),
       ),
       body: ModalProgressHUD(
         progressIndicator: const CircularProgressIndicator(
@@ -175,66 +172,102 @@ class _SpreadsheetState extends State<Spreadsheet> {
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Column(
-
               children: [
-            Container(
-              width: 350,
-
-            padding: const EdgeInsets.all(10.0),
-            decoration: BoxDecoration(
-              color: Colors.white10, // Highlighted background color
-              borderRadius: BorderRadius.circular(14.0), // Rounded corners
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.6),
-                  spreadRadius: 0,
-                  blurRadius: 0,
-                  offset: const Offset(0, 0), // Shadow position
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.person_pin,color: Colors.white,),
-                const SizedBox(width: 8,),
-                Text(
-                  widget.customer.name,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // Text color
+                Container(
+                  width: 350,
+                  padding: const EdgeInsets.all(10.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white10, // Highlighted background color
+                    borderRadius:
+                        BorderRadius.circular(14.0), // Rounded corners
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.6),
+                        spreadRadius: 0,
+                        blurRadius: 0,
+                        offset: const Offset(0, 0), // Shadow position
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.person_pin,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      Text(
+                        widget.customer.name,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white, // Text color
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            ),
-                const SizedBox(height: 50,),
+                const SizedBox(
+                  height: 50,
+                ),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     return SingleChildScrollView(
                       scrollDirection: Axis.vertical,
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                        constraints:
+                            BoxConstraints(minWidth: constraints.maxWidth),
                         child: Column(
                           children: [
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: SizedBox(
-                                width: constraints.maxWidth, // Expand to full screen width
-                                child: DataTable( // add some styling
+                                width: constraints
+                                    .maxWidth, // Expand to full screen width
+                                child: DataTable(
+                                  // add some styling
                                   columnSpacing: 10,
                                   headingRowHeight: 40,
-                                  headingRowColor: WidgetStateColor.resolveWith((states) => const Color(0xffa4392f)), // Apply background color to the entire heading row
-                                  dataRowColor: WidgetStateColor.resolveWith((states) => Colors.white), // Optional: Style data rows if needed
+                                  headingRowColor: WidgetStateColor.resolveWith(
+                                      (states) => const Color(
+                                          0xffa4392f)), // Apply background color to the entire heading row
+                                  dataRowColor: WidgetStateColor.resolveWith(
+                                      (states) => Colors
+                                          .white), // Optional: Style data rows if needed
 
                                   columns: [
-                                    DataColumn(label: Text('Goods', style: GoogleFonts.poppins(fontSize: 14,color: Colors.white,fontWeight: FontWeight.bold))),
-                                    DataColumn(label: Text('Quantity', style: GoogleFonts.poppins(fontSize: 14,color: Colors.white,fontWeight: FontWeight.bold))),
-                                    DataColumn(label: Text('Price', style: GoogleFonts.poppins(fontSize: 14,color: Colors.white,fontWeight: FontWeight.bold))),
-                                    DataColumn(label: Text('Amount', style: GoogleFonts.poppins(fontSize: 14,color: Colors.white,fontWeight: FontWeight.bold))),
-                                    DataColumn(label: Text('', style: GoogleFonts.poppins(fontSize: 0))),
+                                    DataColumn(
+                                        label: Text('Goods',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold))),
+                                    DataColumn(
+                                        label: Text('Quantity',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold))),
+                                    DataColumn(
+                                        label: Text('Price',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold))),
+                                    DataColumn(
+                                        label: Text('Amount',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold))),
+                                    DataColumn(
+                                        label: Text('',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 0))),
                                   ],
                                   rows: List.generate(_data.length, (index) {
                                     return DataRow(cells: [
@@ -242,17 +275,24 @@ class _SpreadsheetState extends State<Spreadsheet> {
                                         SizedBox(
                                           width: 100,
                                           child: TextField(
-                                            controller: _descriptionControllers[index],
-                                            style: GoogleFonts.poppins(fontSize: 12),
-                                            cursorColor: const Color(0xffa4392f),
+                                            controller:
+                                                _descriptionControllers[index],
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12),
+                                            cursorColor:
+                                                const Color(0xffa4392f),
                                             decoration: const InputDecoration(
-                                              focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(color: Color(0xffa4392f), width: 1.5),
+                                              focusedBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Color(0xffa4392f),
+                                                    width: 1.5),
                                               ),
                                             ),
                                             onChanged: (value) {
                                               setState(() {
-                                                _data[index]['description'] = value;
+                                                _data[index]['description'] =
+                                                    value;
                                               });
                                             },
                                           ),
@@ -262,20 +302,32 @@ class _SpreadsheetState extends State<Spreadsheet> {
                                         SizedBox(
                                           width: 60,
                                           child: TextField(
-                                            controller: _quantityControllers[index],
+                                            controller:
+                                                _quantityControllers[index],
                                             keyboardType: TextInputType.number,
-                                            style: GoogleFonts.poppins(fontSize: 12),
-                                            cursorColor: const Color(0xffa4392f),
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12),
+                                            cursorColor:
+                                                const Color(0xffa4392f),
                                             decoration: const InputDecoration(
-                                              focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(color: Color(0xffa4392f), width: 1.5),
+                                              focusedBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Color(0xffa4392f),
+                                                    width: 1.5),
                                               ),
                                             ),
                                             onChanged: (value) {
                                               setState(() {
-                                                _data[index]['quantity'] = double.tryParse(value) ?? 0;
-                                                _data[index]['amount'] = _data[index]['quantity'] * _data[index]['unitPrice'];
-                                                _amountControllers[index].text = _data[index]['amount'].toString();
+                                                _data[index]['quantity'] =
+                                                    double.tryParse(value) ?? 0;
+                                                _data[index]['amount'] =
+                                                    _data[index]['quantity'] *
+                                                        _data[index]
+                                                            ['unitPrice'];
+                                                _amountControllers[index].text =
+                                                    _data[index]['amount']
+                                                        .toString();
                                                 _calculateTotalGoodsAmount();
                                               });
                                             },
@@ -286,21 +338,33 @@ class _SpreadsheetState extends State<Spreadsheet> {
                                         SizedBox(
                                           width: 60,
                                           child: TextField(
-                                            controller: _unitPriceControllers[index],
+                                            controller:
+                                                _unitPriceControllers[index],
                                             keyboardType: TextInputType.number,
-                                            style: GoogleFonts.poppins(fontSize: 12),
-                                            cursorColor: const Color(0xffa4392f),
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12),
+                                            cursorColor:
+                                                const Color(0xffa4392f),
                                             decoration: const InputDecoration(
-                                              focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(color: Color(0xffa4392f), width: 1.5),
+                                              focusedBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Color(0xffa4392f),
+                                                    width: 1.5),
                                               ),
                                               prefixText: '\$',
                                             ),
                                             onChanged: (value) {
                                               setState(() {
-                                                _data[index]['unitPrice'] = double.tryParse(value) ?? 0;
-                                                _data[index]['amount'] = _data[index]['quantity'] * _data[index]['unitPrice'];
-                                                _amountControllers[index].text = _data[index]['amount'].toString();
+                                                _data[index]['unitPrice'] =
+                                                    double.tryParse(value) ?? 0;
+                                                _data[index]['amount'] =
+                                                    _data[index]['quantity'] *
+                                                        _data[index]
+                                                            ['unitPrice'];
+                                                _amountControllers[index].text =
+                                                    _data[index]['amount']
+                                                        .toString();
                                                 _calculateTotalGoodsAmount();
                                               });
                                             },
@@ -311,19 +375,28 @@ class _SpreadsheetState extends State<Spreadsheet> {
                                         SizedBox(
                                           width: 60,
                                           child: TextField(
-                                            controller: _amountControllers[index],
-                                            keyboardType: TextInputType.number,
-                                            style: GoogleFonts.poppins(fontSize: 12),
-                                            cursorColor: const Color(0xffa4392f),
+                                            controller:
+                                                _amountControllers[index],
+                                            keyboardType: const TextInputType
+                                                .numberWithOptions(
+                                                signed: true),
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12),
+                                            cursorColor:
+                                                const Color(0xffa4392f),
                                             decoration: const InputDecoration(
-                                              focusedBorder: UnderlineInputBorder(
-                                                borderSide: BorderSide(color: Color(0xffa4392f), width: 1.5),
+                                              focusedBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Color(0xffa4392f),
+                                                    width: 1.5),
                                               ),
                                               prefixText: '\$',
                                             ),
                                             onChanged: (value) {
                                               setState(() {
-                                                _data[index]['amount'] = double.tryParse(value) ?? 0;
+                                                _data[index]['amount'] =
+                                                    double.tryParse(value) ?? 0;
                                                 _calculateTotalGoodsAmount();
                                               });
                                             },
@@ -344,7 +417,8 @@ class _SpreadsheetState extends State<Spreadsheet> {
 
                             // Include this inside the `build` method, just below the DataTable
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 20.0),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: const Color(0x29a4392f),
@@ -352,7 +426,8 @@ class _SpreadsheetState extends State<Spreadsheet> {
                                 ),
                                 padding: const EdgeInsets.all(10.0),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'TOTAL:',
@@ -376,11 +451,13 @@ class _SpreadsheetState extends State<Spreadsheet> {
                             Padding(
                               padding: const EdgeInsets.all(20.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   ElevatedButton.icon(
                                     onPressed: _saveData,
-                                    icon: const Icon(Icons.save, color: Colors.white),
+                                    icon: const Icon(Icons.save,
+                                        color: Colors.white),
                                     label: const Text(
                                       'Save',
                                       style: TextStyle(
@@ -394,7 +471,8 @@ class _SpreadsheetState extends State<Spreadsheet> {
                                   ),
                                   ElevatedButton.icon(
                                     onPressed: _addNewRow,
-                                    icon: const Icon(Icons.add, color: Colors.white),
+                                    icon: const Icon(Icons.add,
+                                        color: Colors.white),
                                     label: const Text(
                                       'Add New Row',
                                       style: TextStyle(
@@ -410,7 +488,6 @@ class _SpreadsheetState extends State<Spreadsheet> {
                               ),
                             ),
                             const SizedBox(height: 10),
-
                           ],
                         ),
                       ),
@@ -422,11 +499,11 @@ class _SpreadsheetState extends State<Spreadsheet> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xffa4392f),
-        onPressed: _addNewRow,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: const Color(0xffa4392f),
+      //   onPressed: _addNewRow,
+      //   child: const Icon(Icons.add, color: Colors.white),
+      // ),
     );
   }
 
@@ -437,5 +514,4 @@ class _SpreadsheetState extends State<Spreadsheet> {
     }
     return total;
   }
-
 }
