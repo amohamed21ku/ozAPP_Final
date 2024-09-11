@@ -109,7 +109,7 @@ class InfoCard extends StatelessWidget {
               ),
               if (!isUser)
                 const Icon(
-                  Icons.arrow_back_ios,
+                  Icons.arrow_forward_ios,
                   size: 15,
                 ),
             ],

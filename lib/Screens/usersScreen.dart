@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../Widgets/infocard.dart';
 import '../models/user.dart';
+import 'UserDetailScreen.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -36,21 +37,24 @@ class _UsersScreenState extends State<UsersScreen> {
         final username = doc['username'] as String;
         final password = doc['password'] as String;
         final profilePicture = doc['profilePicture'] as String;
+        final banksinfo = doc['banksinfo'] as Map<String, dynamic>;
         final id = doc.id;
         final initial =
             name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '';
+
         return myUser(
           name: name,
           email: email,
-          initial: initial,
           username: username,
           password: password,
-          id: id,
           profilePicture: profilePicture,
+          id: id,
+          initial: initial,
+          banksinfo: banksinfo,
         );
       }).toList();
     } catch (error) {
-      // print('Error fetching customers: $error');
+      // Handle errors appropriately here
     }
 
     setState(() {
@@ -113,11 +117,18 @@ class _UsersScreenState extends State<UsersScreen> {
                       company: user.email,
                       onpress: () {
                         // print(user.name);
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserDetailScreen(user: user),
+                          ),
+                        );
                       },
                       initial: user.initial,
                       customerId: '',
                       isUser:
-                          true, // Assuming this is needed for the infoCard widget
+                          false, // Assuming this is needed for the infoCard widget
                     );
                   },
                   separatorBuilder: (BuildContext context, int index) =>

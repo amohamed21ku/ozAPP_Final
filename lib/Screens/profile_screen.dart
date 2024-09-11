@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oz/Screens/UserDetailScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
+import 'UpdateUserScreen.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -23,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Determine if the current theme is dark or light
-    var isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    // var isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -43,16 +45,13 @@ class ProfileScreen extends StatelessWidget {
               Stack(
                 children: [
                   SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: CircleAvatar(
-                      radius: 30.0,
-                      backgroundImage: currentUser.profilePicture != null
-                          ? CachedNetworkImageProvider(
-                              currentUser.profilePicture!)
-                          : const AssetImage('images/man.png') as ImageProvider,
-                    ),
-                  ),
+                      width: 120,
+                      height: 120,
+                      child: CircleAvatar(
+                        radius: 30.0,
+                        backgroundImage: CachedNetworkImageProvider(
+                            currentUser.profilePicture),
+                      )),
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -95,7 +94,9 @@ class ProfileScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const UpdateProfileScreen()),
+                          builder: (context) => UpdateProfileScreen(
+                                user: currentUser,
+                              )),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -123,7 +124,14 @@ class ProfileScreen extends StatelessWidget {
                 title: "Billing Details",
                 icon: Icons
                     .account_balance_wallet, // Replaced LineAwesomeIcons.wallet
-                onPress: () {},
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            UserDetailScreen(user: currentUser)),
+                  );
+                },
               ),
               ProfileMenuWidget(
                 title: "User Management",
@@ -142,37 +150,9 @@ class ProfileScreen extends StatelessWidget {
                 title: "Logout",
                 icon: Icons
                     .logout, // Replaced LineAwesomeIcons.alternate_sign_out
-                textColor: Colors.red,
+                textColor: const Color(0xffa4392f),
                 endIcon: false,
                 onPress: () => _logout(context),
-                //     () {
-                //   showDialog(
-                //     context: context,
-                //     builder: (BuildContext context) {
-                //       return AlertDialog(
-                //         title: const Text("LOGOUT"),
-                //         content: const Padding(
-                //           padding: EdgeInsets.symmetric(vertical: 15.0),
-                //           child: Text("Are you sure, you want to Logout?"),
-                //         ),
-                //         actions: [
-                //           TextButton(
-                //             onPressed: () {
-                //               // Implement logout functionality
-                //               Navigator.pop(context);
-                //             },
-                //             child: const Text("Yes",
-                //                 style: TextStyle(color: Colors.redAccent)),
-                //           ),
-                //           TextButton(
-                //             onPressed: () => _logout(context),
-                //             child: const Text("No"),
-                //           ),
-                //         ],
-                //       );
-                //     },
-                //   );
-                // },
               ),
             ],
           ),
@@ -190,13 +170,13 @@ class ProfileMenuWidget extends StatelessWidget {
   final bool endIcon;
 
   const ProfileMenuWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.icon,
     required this.onPress,
     this.textColor,
     this.endIcon = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,21 +188,6 @@ class ProfileMenuWidget extends StatelessWidget {
         style: TextStyle(color: textColor ?? Colors.black),
       ),
       trailing: endIcon ? const Icon(Icons.arrow_forward_ios, size: 16) : null,
-    );
-  }
-}
-
-// Dummy screen for updating profile
-class UpdateProfileScreen extends StatelessWidget {
-  const UpdateProfileScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update Profile'),
-      ),
-      body: const Center(child: Text('Update Profile Screen')),
     );
   }
 }

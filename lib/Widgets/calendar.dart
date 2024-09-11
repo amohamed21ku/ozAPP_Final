@@ -18,6 +18,7 @@ class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  bool isEventPassed = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -26,6 +27,22 @@ class _CalendarPageState extends State<CalendarPage> {
     super.initState();
     _selectedDay =
         DateTime.now(); // Set today's date as the selected date by default
+  }
+
+  bool hasEventPassed(DateTime eventDate, TimeOfDay eventTime) {
+    final now = DateTime.now(); // Get the current date and time
+
+    // Combine event date and event time to create a DateTime object
+    final eventDateTime = DateTime(
+      eventDate.year,
+      eventDate.month,
+      eventDate.day,
+      eventTime.hour,
+      eventTime.minute,
+    );
+
+    // Compare eventDateTime with the current date and time
+    return eventDateTime.isBefore(now);
   }
 
   // Fetching events for the selected day
@@ -56,11 +73,11 @@ class _CalendarPageState extends State<CalendarPage> {
   // Adding a new event for the selected day
   Future<void> _addEvent(String event, TimeOfDay time) async {
     final newEvent = {
-      'date': _selectedDay, // Ensure _selectedDay is not null
+      'date': _selectedDay, // Use the selected day from the calendar
       'event': event,
-      'time': time.format(context),
+      'hour': time.hour,
+      'minute': time.minute,
     };
-
     // Get the current list of events
     final docSnapshot =
         await _firestore.collection('users').doc(widget.currentUser.id).get();
@@ -334,6 +351,22 @@ class _CalendarPageState extends State<CalendarPage> {
               selectedTextStyle: TextStyle(color: Colors.white),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'My Events:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xffa4392f),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
               future: _getEventsForDay(_selectedDay ?? _focusedDay),
@@ -354,8 +387,13 @@ class _CalendarPageState extends State<CalendarPage> {
                     itemCount: events.length,
                     itemBuilder: (context, index) {
                       final event = events[index];
+
+                      // Convert hour and minute back to TimeOfDay
+                      final eventTime = TimeOfDay(
+                          hour: event['hour'], minute: event['minute']);
+
                       return Dismissible(
-                        key: Key(event['event'] + event['time']),
+                        key: Key(event['event'] + eventTime.format(context)),
                         confirmDismiss: (direction) async {
                           return await showDialog(
                             context: context,
@@ -418,53 +456,79 @@ class _CalendarPageState extends State<CalendarPage> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Card(
-                            elevation:
-                                4, // Reduced elevation for a subtler shadow effect
+                            color: hasEventPassed(
+                                    DateTime.parse(
+                                        event['date'].toDate().toString()),
+                                    eventTime)
+                                ? Color(0xfff0f0f0)
+                                : Colors.white,
+                            elevation: 2,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  12), // Slightly smaller border radius
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: ListTile(
-                              trailing: const Icon(
-                                Icons.arrow_back_ios,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                              tileColor: Colors.white10, // Lighter tile color
+                              // trailing: const Icon(
+                              //   Icons.watch_later,
+                              //   color: Colors.red,
+                              //   size: 22.0,
+                              // ),
+                              tileColor: Colors.white10,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.0),
+                                borderRadius: BorderRadius.circular(8.0),
                                 side: BorderSide(
-                                  color: const Color(0xffa4392f).withOpacity(
-                                      0.7), // Adjusted border color for better contrast
+                                  color: hasEventPassed(
+                                          DateTime.parse(event['date']
+                                              .toDate()
+                                              .toString()),
+                                          eventTime)
+                                      ? Colors.red
+                                      : Colors.black,
                                   width: 0.8,
                                 ),
                               ),
                               leading: GestureDetector(
-                                child: const Icon(
+                                child: Icon(
                                   Icons.label_important,
-                                  color: Color(0xffa4392f),
-                                  size: 22.0, // Slightly smaller icon
+                                  color: hasEventPassed(
+                                          DateTime.parse(event['date']
+                                              .toDate()
+                                              .toString()),
+                                          eventTime)
+                                      ? Color(0x99a4392f)
+                                      : Color(0xffa4392f),
+                                  size: 22.0,
                                 ),
                               ),
                               title: Text(
                                 event['event'] ?? 'No Event',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 15, // Slightly smaller font size
-                                  fontWeight: FontWeight
-                                      .w600, // Medium weight for better readability
-                                  color: Colors.black87,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: hasEventPassed(
+                                          DateTime.parse(event['date']
+                                              .toDate()
+                                              .toString()),
+                                          eventTime)
+                                      ? Colors.grey
+                                      : Colors.black87,
                                 ),
                               ),
                               subtitle: Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.access_time,
-                                    color: Colors.grey,
+                                    color: hasEventPassed(
+                                            DateTime.parse(event['date']
+                                                .toDate()
+                                                .toString()),
+                                            eventTime)
+                                        ? Color(0x66ff0000)
+                                        : Colors.grey,
                                     size: 16.0,
                                   ),
                                   const SizedBox(width: 5.0),
                                   Text(
-                                    event['time'] ?? 'No Time',
+                                    eventTime.format(context),
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       color: Colors.black54,

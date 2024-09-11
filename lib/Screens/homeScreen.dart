@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
         id: '000',
         profilePicture:
             'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
+        banksinfo: {},
       );
     }
   }
@@ -542,26 +545,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void initial() async {
     logindata = await SharedPreferences.getInstance();
-    setState(() {
-      username = logindata.getString('username')!;
-      password = logindata.getString('password')!;
-      email = logindata.getString('email')!;
-      name = logindata.getString('name')!;
-      id = logindata.getString('id')!;
-      profilePicture = logindata.getString('profilePic')!;
 
+    setState(() {
+      username = logindata.getString('username') ?? '';
+      password = logindata.getString('password') ?? '';
+      email = logindata.getString('email') ?? '';
+      name = logindata.getString('name') ?? '';
+      id = logindata.getString('id') ?? '';
+      profilePicture = logindata.getString('profilePic') ?? '';
+
+      // Retrieve and decode banksinfo from SharedPreferences
+      String? banksinfoString = logindata.getString('banksinfo');
+      Map<String, dynamic> banksinfo = {};
+
+      if (banksinfoString != null && banksinfoString.isNotEmpty) {
+        banksinfo = Map<String, dynamic>.from(jsonDecode(banksinfoString));
+      }
+
+      // Initialize the currentUser
       currentUser = myUser(
         username: username,
         password: password,
         name: name,
         email: email,
-        initial: name[0],
+        initial: name.isNotEmpty ? name[0].toUpperCase() : '',
         id: id,
         profilePicture: profilePicture,
+        banksinfo: banksinfo,
       );
     });
-
-    await _fetchEvents();
+    _refreshEvents();
   }
 
   Future<void> _fetchEvents() async {

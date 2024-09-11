@@ -155,151 +155,161 @@ class _BuildToDoState extends State<BuildToDo> {
   Widget _buildEventCard(
       BuildContext context, Map<String, dynamic> event, int index) {
     return Dismissible(
-      key: UniqueKey(),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        return await showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(
-                'Confirm Delete',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xffa4392f),
-                ),
-              ),
-              content: Text(
-                'Do you want to delete this Task?',
-                style: GoogleFonts.poppins(),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                  child: Text(
-                    'No',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xffa4392f),
-                    ),
+        key: UniqueKey(),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text(
+                  'Confirm Delete',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xffa4392f),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                  child: Text(
-                    'Yes',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xffa4392f),
+                content: Text(
+                  'Do you want to delete this Task?',
+                  style: GoogleFonts.poppins(),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text(
+                      'No',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xffa4392f),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      background: Container(
-        color: Colors.white70,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
-      ),
-      onDismissed: (direction) async {
-        await widget._deleteEventFromFirestore(index);
-      },
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 12.0,
-            horizontal: 15.0,
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text(
+                      'Yes',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xffa4392f),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        background: Container(
+          color: Colors.white70,
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: const Icon(
+            Icons.delete,
+            color: Colors.white,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onTap: () async {
-                  final docId = event['docId'];
+        ),
+        onDismissed: (direction) async {
+          await widget._deleteEventFromFirestore(index);
+        },
+        child: Card(
+          color: event['isChecked'] ? Color(0xfff0f0f0) : Colors.white,
+          elevation: 5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(
+              color: widget.showadd
+                  ? Colors.white
+                  : Colors.black, // Conditional border color
+              width: 0.5, // Border width
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 12.0,
+              horizontal: 15.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final docId = event['docId'];
 
-                  if (docId != null) {
-                    final docRef = FirebaseFirestore.instance
-                        .collection('events')
-                        .doc(docId);
+                    if (docId != null) {
+                      final docRef = FirebaseFirestore.instance
+                          .collection('events')
+                          .doc(docId);
 
-                    try {
-                      // Toggle the 'isChecked' value in Firestore
-                      await docRef.update({
-                        'isChecked': !event['isChecked'], // Toggle the value
-                      });
+                      try {
+                        // Toggle the 'isChecked' value in Firestore
+                        await docRef.update({
+                          'isChecked': !event['isChecked'], // Toggle the value
+                        });
 
-                      // Update local state if needed
-                      setState(() {
-                        event['isChecked'] = !event['isChecked'];
-                      });
+                        // Update local state if needed
+                        setState(() {
+                          event['isChecked'] = !event['isChecked'];
+                        });
 
-                      // If the event is now checked, add the item to the customer
-                      if (event['isChecked']) {
-                        addItemToCustomer(
+                        // If the event is now checked, add the item to the customer
+                        if (event['isChecked']) {
+                          addItemToCustomer(
                             event['CustomerId'], // Ensure this exists in event
                             event['Kodu'], // Product code
                             event['Price'], // Price
                             event['Hanger'], // Boolean for hanger
                             event['Yardage'], // Boolean for yardage
-                            event['Name']); // Product name
+                            event['Name'], // Product name
+                          );
+                        }
+                      } catch (e) {
+                        print("Error updating Firestore: $e");
                       }
-                    } catch (e) {
-                      print("Error updating Firestore: $e");
+                    } else {
+                      print("Document ID is null. Cannot update Firestore.");
                     }
-                  } else {
-                    print("Document ID is null. Cannot update Firestore.");
-                  }
-                },
-                child: Icon(
-                  event['isChecked'] ? Icons.check_circle : Icons.task_alt,
-                  size: 30.0,
-                  color: const Color(0xffa4392f),
+                  },
+                  child: Icon(
+                    event['isChecked'] ? Icons.check_circle : Icons.task_alt,
+                    size: 30.0,
+                    color: const Color(0xffa4392f),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event['title'] ?? 'No Title',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event['title'] ?? 'No Title',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color:
+                              event['isChecked'] ? Colors.grey : Colors.black87,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      event['description'] ?? 'No Description',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: Colors.black54,
+                      const SizedBox(height: 5),
+                      Text(
+                        event['description'] ?? 'No Description',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: event['isChecked']
+                              ? Color(0xff9e9b9b)
+                              : Colors.black54,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const Icon(
-                Icons.arrow_back_ios,
-                size: 15,
-              ),
-            ],
+                // const Icon(
+                //   Icons.arrow_back_ios,
+                //   size: 15,
+                // ),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }

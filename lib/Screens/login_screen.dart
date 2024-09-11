@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -176,6 +178,15 @@ class _LoginScreenState extends State<LoginScreen>
                                         "id", snapshot.docs.first.id);
                                     logindata.setString('profilePic',
                                         userData['profilePicture']);
+                                    // Convert banksinfo map to JSON string before saving to SharedPreferences
+                                    if (userData.containsKey('banksinfo') &&
+                                        userData['banksinfo'] != null) {
+                                      String banksinfoJson =
+                                          jsonEncode(userData['banksinfo']);
+                                      logindata.setString(
+                                          'banksinfo', banksinfoJson);
+                                    }
+
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
