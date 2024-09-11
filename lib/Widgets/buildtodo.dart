@@ -26,8 +26,14 @@ class BuildToDo extends StatefulWidget {
   State<BuildToDo> createState() => _BuildToDoState();
 }
 
-Future<void> addItemToCustomer(String docId, String kodu, String price,
-    bool hanger, bool yardage, String name) async {
+Future<void> addItemToCustomer(
+  String customerId,
+  String kodu,
+  String price,
+  bool hanger,
+  bool yardage,
+  String name,
+) async {
   try {
     // Get the current date
     DateTime now = DateTime.now();
@@ -36,12 +42,23 @@ Future<void> addItemToCustomer(String docId, String kodu, String price,
 
     // Reference to the specific document in the 'customers' collection
     DocumentReference customerDoc =
-        FirebaseFirestore.instance.collection('customers').doc(docId);
+        FirebaseFirestore.instance.collection('customers').doc(customerId);
 
     // Generate a unique item ID
     String itemId = FirebaseFirestore.instance.collection('customers').doc().id;
 
-    // Create the new item data
+    // Retrieve the existing items to find the current highest order
+    DocumentSnapshot customerSnapshot = await customerDoc.get();
+    Map<String, dynamic>? customerData =
+        customerSnapshot.data() as Map<String, dynamic>?;
+    Map<String, dynamic> items = customerData?['items'] ?? {};
+    int maxOrder = items.isNotEmpty
+        ? items.values
+            .map((item) => item['order'] as int)
+            .reduce((a, b) => a > b ? a : b)
+        : 0;
+
+    // Create the new item data with the next order value
     Map<String, dynamic> newItem = {
       'name': name,
       'kodu': kodu,
@@ -49,6 +66,7 @@ Future<void> addItemToCustomer(String docId, String kodu, String price,
       'price': price,
       'hanger': hanger,
       'yardage': yardage,
+      'order': maxOrder + 1, // Set the next order value
     };
 
     // Use a map to update the items field with the new item
@@ -227,14 +245,15 @@ class _BuildToDoState extends State<BuildToDo> {
                         event['isChecked'] = !event['isChecked'];
                       });
 
+                      // If the event is now checked, add the item to the customer
                       if (event['isChecked']) {
                         addItemToCustomer(
-                            event['CustomerId'],
-                            event['Kodu'],
-                            event['Price'],
-                            event['Hanger'],
-                            event['Yardage'],
-                            event['Name']);
+                            event['CustomerId'], // Ensure this exists in event
+                            event['Kodu'], // Product code
+                            event['Price'], // Price
+                            event['Hanger'], // Boolean for hanger
+                            event['Yardage'], // Boolean for yardage
+                            event['Name']); // Product name
                       }
                     } catch (e) {
                       print("Error updating Firestore: $e");
