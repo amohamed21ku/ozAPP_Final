@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Widgets/components.dart';
 import '../Widgets/infocard.dart';
 import '../models/Customers.dart';
 import 'customer_items_screen.dart';
@@ -16,12 +17,33 @@ class CustomerScreen extends StatefulWidget {
 
 class _CustomerScreenState extends State<CustomerScreen> {
   List<Customer> customers = [];
-  bool showSpinner = false; // Track loading state
+  List<Customer> filteredCustomers = [];
+  bool showSpinner = false;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     fetchCustomers();
+    searchController.addListener(() {
+      filterData(searchController.text);
+    });
+  }
+
+  // Filtering function
+  void filterData(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredCustomers =
+            customers; // Show all customers when search is empty
+      } else {
+        filteredCustomers = customers
+            .where((customer) =>
+                customer.name.toLowerCase().contains(query.toLowerCase()) ||
+                customer.company.toLowerCase().contains(query.toLowerCase()))
+            .toList(); // Filter customers by name or company
+      }
+    });
   }
 
   Future<void> fetchCustomers() async {
@@ -50,12 +72,15 @@ class _CustomerScreenState extends State<CustomerScreen> {
         );
       }).toList();
 
+      // Initialize filteredCustomers with all customers
+      filteredCustomers = customers;
+
       // Cache the customer data
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('customers',
           jsonEncode(customers.map((customer) => customer.toJson()).toList()));
     } catch (error) {
-      // print('Error fetching customers: $error');
+      // Handle error here if needed
     }
 
     setState(() {
@@ -83,74 +108,85 @@ class _CustomerScreenState extends State<CustomerScreen> {
               color: const Color(0xffa4392f), // Title color
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  labelStyle:
-                      TextStyle(color: Color(0xffa4392f)), // Label color
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color:
-                            Color(0xffa4392f)), // Underline color when focused
+          content: SizedBox(
+            width: double.maxFinite,
+            // height: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    labelStyle:
+                        TextStyle(color: Color(0xffa4392f)), // Label color
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Color(
+                              0xffa4392f)), // Underline color when focused
+                    ),
                   ),
+                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  onChanged: (value) => name = value,
                 ),
-                cursorColor: const Color(0xffa4392f), // Cursor color
-                onChanged: (value) => name = value,
-              ),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Company',
-                  labelStyle:
-                      TextStyle(color: Color(0xffa4392f)), // Label color
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                        color:
-                            Color(0xffa4392f)), // Underline color when focused
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Company',
+                    labelStyle:
+                        TextStyle(color: Color(0xffa4392f)), // Label color
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Color(
+                              0xffa4392f)), // Underline color when focused
+                    ),
                   ),
+                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  onChanged: (value) => company = value,
                 ),
-                cursorColor: const Color(0xffa4392f), // Cursor color
-                onChanged: (value) => company = value,
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog without adding
-              },
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xffa4392f), // Button text color
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog without adding
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // Button text color
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // Add customer to Firestore
-                await FirebaseFirestore.instance.collection('customers').add({
-                  'name': name,
-                  'company': company,
-                  'goods': goods,
-                  'items': items,
-                  // Add other fields as needed
-                });
-                Navigator.of(context).pop(); // Close dialog after adding
-                await fetchCustomers(); // Refresh customer list
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color(0xffa4392f), // Button background color
-              ),
-              child: Text(
-                'Add',
-                style: GoogleFonts.poppins(
-                  color: Colors.white, // Button text color
+                ElevatedButton(
+                  onPressed: () async {
+                    // Add customer to Firestore
+                    await FirebaseFirestore.instance
+                        .collection('customers')
+                        .add({
+                      'name': name,
+                      'company': company,
+                      'goods': goods,
+                      'items': items,
+                      // Add other fields as needed
+                    });
+                    Navigator.of(context).pop(); // Close dialog after adding
+                    await fetchCustomers(); // Refresh customer list
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        const Color(0xffa4392f), // Button background color
+                  ),
+                  child: Text(
+                    'Add',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white, // Button text color
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         );
@@ -188,62 +224,54 @@ class _CustomerScreenState extends State<CustomerScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
         child: showSpinner
             ? const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xffa4392f)), // Change spinner color to theme color
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
                 ),
               )
             : RefreshIndicator(
                 onRefresh: _handleRefresh,
-                color: const Color(
-                    0xffa4392f), // Change refresh indicator color to theme color
-                backgroundColor: Colors
-                    .grey[200], // Change background color of refresh indicator
-                child: FutureBuilder(
-                  future: SharedPreferences.getInstance(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<SharedPreferences> snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    List<Customer> cachedCustomers = [];
-                    try {
-                      List<dynamic> jsonList =
-                          jsonDecode(snapshot.data!.getString('customers')!);
-                      cachedCustomers = jsonList
-                          .map((item) => Customer.fromJson(item))
-                          .toList();
-                    } catch (error) {
-                      // print('Error decoding cached customers: $error');
-                    }
-                    return ListView.separated(
-                      // shrinkWrap: true,
-                      itemCount: cachedCustomers.length,
-                      itemBuilder: (context, index) {
-                        final customer = cachedCustomers[index];
-                        return InfoCard(
-                          name: customer.name,
-                          company: customer.company,
-                          onpress: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  CustomerItemsScreen(customer: customer),
-                            ));
-                          },
-                          initial: customer.initial,
-                          customerId: customer.cid,
-                          isUser: false,
-                        );
-                      },
-                      separatorBuilder: (BuildContext context, int index) =>
-                          const SizedBox(
-                        height: 4,
+                color: const Color(0xffa4392f),
+                backgroundColor: Colors.grey[200],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomSearchBar(
+                      searchController: searchController,
+                      onChanged: filterData,
+                      hinttext: 'Search by Name or Company',
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: filteredCustomers.length,
+                        itemBuilder: (context, index) {
+                          final customer = filteredCustomers[index];
+                          return InfoCard(
+                            name: customer.name,
+                            company: customer.company,
+                            onpress: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) =>
+                                    CustomerItemsScreen(customer: customer),
+                              ));
+                            },
+                            initial: customer.initial,
+                            customerId: customer.cid,
+                            isUser: false,
+                          );
+                        },
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const SizedBox(
+                          height: 4,
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
       ),

@@ -180,83 +180,14 @@ class _HomeScreenState extends State<HomeScreen> {
               'Add Task',
               style: GoogleFonts.poppins(color: Colors.white),
             ),
-            content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.white,
-                            width: 2.0,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.white12,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      dropdownColor: Colors.grey,
-                      iconEnabledColor: Colors.white,
-                      value: isGivingSample ? 'Giving Sample' : 'Normal Task',
-                      style: GoogleFonts.poppins(color: Colors.white),
-                      items: [
-                        DropdownMenuItem(
-                          value: 'Normal Task',
-                          child: Text('Normal Task',
-                              style: GoogleFonts.poppins(color: Colors.white)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Giving Sample',
-                          child: Text('Giving Sample',
-                              style: GoogleFonts.poppins(color: Colors.white)),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          isGivingSample = value == 'Giving Sample';
-                        });
-                      },
-                    ),
-                    if (!isGivingSample) ...[
-                      TextField(
-                        controller: titleController,
-                        decoration: InputDecoration(
-                          labelText: 'Task Name',
-                          labelStyle: GoogleFonts.poppins(color: Colors.white),
-                          enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                        ),
-                        style: GoogleFonts.poppins(color: Colors.white),
-                        cursorColor: Colors.white,
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: descriptionController,
-                        decoration: InputDecoration(
-                          labelText: 'Description (optional)',
-                          labelStyle: GoogleFonts.poppins(color: Colors.white),
-                          enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                        ),
-                        style: GoogleFonts.poppins(color: Colors.white),
-                        cursorColor: Colors.white,
-                      ),
-                    ] else ...[
-                      // Dropdown with fetched customers
+            content: SizedBox(
+              width: double.maxFinite,
+              // height: 1600,
+              child: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -274,149 +205,227 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         dropdownColor: Colors.grey,
-                        value:
-                            selectedCustomer.isEmpty ? null : selectedCustomer,
-                        hint: Text('Select Customer',
-                            style: GoogleFonts.poppins(color: Colors.white)),
-                        items: customers.map((customer) {
-                          return DropdownMenuItem(
-                            value: customer,
-                            child: Text(customer,
+                        iconEnabledColor: Colors.white,
+                        value: isGivingSample ? 'Giving Sample' : 'Normal Task',
+                        style: GoogleFonts.poppins(color: Colors.white),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'Normal Task',
+                            child: Text('Normal Task',
                                 style:
                                     GoogleFonts.poppins(color: Colors.white)),
-                          );
-                        }).toList(),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Giving Sample',
+                            child: Text('Giving Sample',
+                                style:
+                                    GoogleFonts.poppins(color: Colors.white)),
+                          ),
+                        ],
                         onChanged: (value) {
                           setState(() {
-                            selectedCustomer = value!;
-                            selectedCustomerId = customerIds[value]!;
+                            isGivingSample = value == 'Giving Sample';
                           });
                         },
                       ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: koduController,
-                              decoration: InputDecoration(
-                                labelText: 'Kodu',
-                                labelStyle:
-                                    GoogleFonts.poppins(color: Colors.white),
-                                enabledBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                                focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                              ),
-                              style: GoogleFonts.poppins(color: Colors.white),
-                              cursorColor: Colors.white,
+                      if (!isGivingSample) ...[
+                        TextField(
+                          controller: titleController,
+                          decoration: InputDecoration(
+                            labelText: 'Task Name',
+                            labelStyle:
+                                GoogleFonts.poppins(color: Colors.white),
+                            enabledBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
+                            ),
+                            focusedBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: nameController,
-                              decoration: InputDecoration(
-                                labelText: 'Name',
-                                labelStyle:
-                                    GoogleFonts.poppins(color: Colors.white),
-                                enabledBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                                focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                              ),
-                              style: GoogleFonts.poppins(color: Colors.white),
-                              cursorColor: Colors.white,
+                          style: GoogleFonts.poppins(color: Colors.white),
+                          cursorColor: Colors.white,
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: descriptionController,
+                          decoration: InputDecoration(
+                            labelText: 'Description (optional)',
+                            labelStyle:
+                                GoogleFonts.poppins(color: Colors.white),
+                            enabledBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
+                            ),
+                            focusedBorder: const UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: priceController,
-                              decoration: InputDecoration(
-                                labelText: 'Price',
-                                labelStyle:
-                                    GoogleFonts.poppins(color: Colors.white),
-                                enabledBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                                focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
+                          style: GoogleFonts.poppins(color: Colors.white),
+                          cursorColor: Colors.white,
+                        ),
+                      ] else ...[
+                        // Dropdown with fetched customers
+                        DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.white,
+                                width: 2.0,
                               ),
-                              style: GoogleFonts.poppins(color: Colors.white),
-                              cursorColor: Colors.white,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.white12,
+                                width: 2.0,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 10),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: CheckboxListTile(
-                              title: Text(
-                                'Hanger',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 16,
+                          dropdownColor: Colors.grey,
+                          value: selectedCustomer.isEmpty
+                              ? null
+                              : selectedCustomer,
+                          hint: Text('Select Customer',
+                              style: GoogleFonts.poppins(color: Colors.white)),
+                          items: customers.map((customer) {
+                            return DropdownMenuItem(
+                              value: customer,
+                              child: Text(customer,
+                                  style:
+                                      GoogleFonts.poppins(color: Colors.white)),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCustomer = value!;
+                              selectedCustomerId = customerIds[value]!;
+                            });
+                          },
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: koduController,
+                                decoration: InputDecoration(
+                                  labelText: 'Kodu',
+                                  labelStyle:
+                                      GoogleFonts.poppins(color: Colors.white),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
                                 ),
-                                overflow: TextOverflow
-                                    .visible, // Ensures text wraps to the next line
+                                style: GoogleFonts.poppins(color: Colors.white),
+                                cursorColor: Colors.white,
                               ),
-                              value: hanger,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  hanger = value!;
-                                });
-                              },
-                              activeColor: Colors.white,
-                              checkColor: Colors.black,
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity
-                                  .leading, // Checkbox at the start
                             ),
-                          ),
-                          Flexible(
-                            child: CheckboxListTile(
-                              title: Text(
-                                'Yardage',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 16,
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: nameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Name',
+                                  labelStyle:
+                                      GoogleFonts.poppins(color: Colors.white),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
                                 ),
-                                overflow: TextOverflow
-                                    .visible, // Ensures text wraps to the next line
+                                style: GoogleFonts.poppins(color: Colors.white),
+                                cursorColor: Colors.white,
                               ),
-                              value: yardage,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  yardage = value!;
-                                });
-                              },
-                              activeColor: Colors.white,
-                              checkColor: Colors.black,
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity
-                                  .leading, // Checkbox at the start
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: priceController,
+                                decoration: InputDecoration(
+                                  labelText: 'Price',
+                                  labelStyle:
+                                      GoogleFonts.poppins(color: Colors.white),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                  ),
+                                ),
+                                style: GoogleFonts.poppins(color: Colors.white),
+                                cursorColor: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: CheckboxListTile(
+                                title: Text(
+                                  'Hanger',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow
+                                      .visible, // Ensures text wraps to the next line
+                                ),
+                                value: hanger,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    hanger = value!;
+                                  });
+                                },
+                                activeColor: Colors.white,
+                                checkColor: Colors.black,
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity: ListTileControlAffinity
+                                    .leading, // Checkbox at the start
+                              ),
+                            ),
+                            Flexible(
+                              child: CheckboxListTile(
+                                title: Text(
+                                  'Yardage',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow
+                                      .visible, // Ensures text wraps to the next line
+                                ),
+                                value: yardage,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    yardage = value!;
+                                  });
+                                },
+                                activeColor: Colors.white,
+                                checkColor: Colors.black,
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity: ListTileControlAffinity
+                                    .leading, // Checkbox at the start
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
-                );
-              },
+                  );
+                },
+              ),
             ),
             actions: [
               Row(
@@ -612,22 +621,23 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const NeverScrollableScrollPhysics(),
           children: [
             buildHomePage(),
+            buildtodo(),
             buildCalendarPage(),
             buildProfilePage(),
-            buildtodo(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           backgroundColor: const Color(0xffa4392f),
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Home',
             ),
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.task_alt),
-            //   label: 'To-DO',
-            // ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.task_alt),
+              label: 'To-DO',
+            ),
             BottomNavigationBarItem(
               icon: Icon(Icons.today),
               label: 'Calender',
@@ -684,7 +694,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  _onItemTapped(2);
+                  _onItemTapped(3);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(2.0),
@@ -789,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 20),
           GestureDetector(
               onTap: () {
-                _pageController.jumpToPage(3);
+                _onItemTapped(1);
               },
               child: BuildToDo(
                 events: events,

@@ -405,13 +405,13 @@ class _CalendarPageState extends State<CalendarPage> {
                             },
                           );
                         },
-                        direction: DismissDirection.startToEnd,
+                        direction: DismissDirection.endToStart,
                         onDismissed: (direction) {
                           _deleteEvent(event);
                         },
                         background: Container(
                           color: const Color(0xffa4392f),
-                          alignment: Alignment.centerLeft,
+                          alignment: Alignment.centerRight,
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: const Icon(Icons.delete, color: Colors.white),
                         ),
@@ -426,7 +426,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             ),
                             child: ListTile(
                               trailing: const Icon(
-                                Icons.arrow_forward_ios,
+                                Icons.arrow_back_ios,
                                 size: 16,
                                 color: Colors.grey,
                               ),

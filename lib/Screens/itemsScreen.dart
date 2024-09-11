@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:oz/models/GsheetAPI.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Widgets/components.dart';
 import '../Widgets/mycard.dart';
 import 'itemDetails.dart';
 
@@ -89,14 +90,16 @@ class ItemsScreenState extends State<ItemsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               title: Text(
                 'Select Columns to Display',
                 style: GoogleFonts.poppins(color: const Color(0xffa4392f)),
               ),
               content: SizedBox(
                 width: double.maxFinite,
-                height:
-                    400, // Set a fixed height to avoid oversized drag targets
+                height: 400,
+
+                // Set a fixed height to avoid oversized drag targets
                 child: IgnorePointer(
                   ignoring: false,
                   child: ReorderableListView(
@@ -418,6 +421,7 @@ class ItemsScreenState extends State<ItemsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(
@@ -479,39 +483,16 @@ class ItemsScreenState extends State<ItemsScreen> {
                   Visibility(
                     visible: isVisible,
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: Column(
                         children: [
                           Row(
                             children: [
                               Expanded(
-                                child: TextField(
-                                  controller: searchController,
+                                child: CustomSearchBar(
+                                  searchController: searchController,
                                   onChanged: filterData,
-                                  decoration: InputDecoration(
-                                    labelText: 'Search',
-                                    hintText: 'Search by Kodu or Name',
-                                    hintStyle: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w200,
-                                        fontSize: 10),
-                                    labelStyle: GoogleFonts.poppins(
-                                        color: Colors.grey, fontSize: 12),
-                                    prefixIcon: const Icon(
-                                      Icons.search,
-                                      color: Colors.grey,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          width: 1, color: Colors.black45),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          color: Color(0xffa4392f), width: 2),
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    ),
-                                  ),
-                                  style: GoogleFonts.poppins(fontSize: 10),
+                                  hinttext: 'Search by Kodu or Name',
                                 ),
                               ),
                               const SizedBox(
@@ -526,9 +507,15 @@ class ItemsScreenState extends State<ItemsScreen> {
                                 ),
                               ),
                               IconButton(
-                                onPressed:
-                                    // saveChangesToFirebase,
-                                    GsheetAPI().uploadDataToGoogleSheet,
+                                onPressed: GsheetAPI().uploadDataToGoogleSheet,
+                                icon: const Icon(
+                                  size: 25,
+                                  Icons.upload,
+                                  color: Color(0xffa4392f),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: saveChangesToFirebase,
                                 icon: const Icon(
                                   size: 25,
                                   Icons.save,
@@ -574,32 +561,29 @@ class ItemsScreenState extends State<ItemsScreen> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Card(
-                      color: const Color(0xffa4392f),
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 0, horizontal: 0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(isVisible ? 10.0 : 0.0),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          children: columnOrder
-                              .where((column) => columnVisibility[column]!)
-                              .map((column) => Expanded(
-                                    child: Text(
-                                      column,
-                                      style: GoogleFonts.poppins(
+                  Card(
+                    color: const Color(0xffa4392f),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(isVisible ? 10.0 : 0.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                      child: Row(
+                        children: columnOrder
+                            .where((column) => columnVisibility[column]!)
+                            .map((column) => Expanded(
+                                  child: Text(
+                                    column,
+                                    style: GoogleFonts.poppins(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
+                                        fontSize: 12),
+                                  ),
+                                ))
+                            .toList(),
                       ),
                     ),
                   ),
@@ -634,10 +618,15 @@ class ItemsScreenState extends State<ItemsScreen> {
                                   });
                                 },
                                 child: Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        2.0), // Adjust the radius here
+                                  ),
+                                  color: Color(0xfffcfcfc),
+                                  elevation: 2,
                                   child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
+                                    padding:
+                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
                                     child: Row(
                                       children: columnOrder
                                           .where((column) =>

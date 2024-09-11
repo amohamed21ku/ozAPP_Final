@@ -63,21 +63,21 @@ class GsheetAPI {
       item.remove('Tarih');
 
       List<dynamic> previous_prices = [
-        //  row.length > 10 ? row[10] : '',
-        //   row.length > 11 ? row[11] : '',
-        //   row.length > 12 ? row[12] : '',
-        //  row.length > 13 ? row[13] : '',
-        //  row.length > 14 ? row[14] : '',
-        //   row.length > 15 ? row[15] : '',
-        //   row.length > 16 ? row[16] : '',
-        // row.length > 17 ? row[17] : '',
-        //   row.length > 18 ? row[18] : '',
-        //  row.length > 19 ? row[19] : '',
-        //  row.length > 20 ? row[20] : '',
-        //  row.length > 21 ? row[21] : '',
+        row.length > 10 ? row[10] : '',
+        row.length > 11 ? row[11] : '',
+        row.length > 12 ? row[12] : '',
+        row.length > 13 ? row[13] : '',
+        row.length > 14 ? row[14] : '',
+        row.length > 15 ? row[15] : '',
+        row.length > 16 ? row[16] : '',
+        row.length > 17 ? row[17] : '',
+        row.length > 18 ? row[18] : '',
+        row.length > 19 ? row[19] : '',
+        row.length > 20 ? row[20] : '',
+        row.length > 21 ? row[21] : '',
       ];
 
-      // item['Previous_Prices'] = previous_prices;
+      item['Previous_Prices'] = previous_prices;
 
       items.add(item);
     }
@@ -168,15 +168,14 @@ class GsheetAPI {
         data['Item Name'],
         data['Price'],
         data['Date'],
-        data['Previous_Prices']
       ];
 
-      // List previousPrices = data['Previous_Prices'] ?? [];
-      // for (int i = 0; i < previousPrices.length; i += 3) {
-      //   row.add(previousPrices[i] ?? '');
-      //   row.add(previousPrices[i + 1] ?? '');
-      //   row.add(previousPrices[i + 2] ?? '');
-      // }
+      List previousPrices = data['Previous_Prices'] ?? [];
+      for (int i = 0; i < previousPrices.length; i += 3) {
+        row.add(previousPrices[i] ?? '');
+        row.add(previousPrices[i + 1] ?? '');
+        row.add(previousPrices[i + 2] ?? '');
+      }
 
       sheetData.add(row);
     }

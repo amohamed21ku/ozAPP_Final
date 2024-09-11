@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oz/Screens/sheet.dart';
+import '../Widgets/components.dart';
 import '../Widgets/infocard.dart';
 import '../models/Customers.dart';
-import 'spreedsheet.dart';
 
 class BalanceSheet extends StatefulWidget {
   const BalanceSheet({super.key});
@@ -14,12 +15,30 @@ class BalanceSheet extends StatefulWidget {
 
 class _BalanceSheetState extends State<BalanceSheet> {
   List<Customer> customers = [];
-  bool showSpinner = false; // Track loading state
-
+  List<Customer> filteredCustomers = [];
+  bool showSpinner = false;
+  TextEditingController searchController = TextEditingController();
   @override
   void initState() {
     super.initState();
     fetchCustomers();
+    filterData(searchController.text);
+  }
+
+  // Filtering function
+  void filterData(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        filteredCustomers =
+            customers; // Show all customers when search is empty
+      } else {
+        filteredCustomers = customers
+            .where((customer) =>
+                customer.name.toLowerCase().contains(query.toLowerCase()) ||
+                customer.company.toLowerCase().contains(query.toLowerCase()))
+            .toList(); // Filter customers by name or company
+      }
+    });
   }
 
   Future<void> fetchCustomers() async {
@@ -84,7 +103,7 @@ class _BalanceSheetState extends State<BalanceSheet> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
         child: showSpinner
             ? const Center(
                 child: CircularProgressIndicator(
@@ -98,30 +117,45 @@ class _BalanceSheetState extends State<BalanceSheet> {
                     0xffa4392f), // Change refresh indicator color to theme color
                 backgroundColor: Colors
                     .grey[200], // Change background color of refresh indicator
-                child: ListView.separated(
-                  // shrinkWrap: true,
-                  itemCount: customers.length,
-                  itemBuilder: (context, index) {
-                    final customer = customers[index];
-                    return InfoCard(
-                      name: customer.name,
-                      company: customer.company,
-                      onpress: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => Spreadsheet(
-                            customer: customer,
-                          ),
-                        ));
-                      },
-                      initial: customer.initial,
-                      customerId: customer.cid,
-                      isUser: true,
-                    );
-                  },
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const SizedBox(
-                    height: 4,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomSearchBar(
+                      searchController: searchController,
+                      onChanged: filterData,
+                      hinttext: 'Search by Name or Company',
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        // shrinkWrap: true,
+                        itemCount: filteredCustomers.length,
+                        itemBuilder: (context, index) {
+                          final customer = filteredCustomers[index];
+                          return InfoCard(
+                            name: customer.name,
+                            company: customer.company,
+                            onpress: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => ordersSheet(
+                                  customerName: customer.name,
+                                ),
+                              ));
+                            },
+                            initial: customer.initial,
+                            customerId: customer.cid,
+                            isUser: true,
+                          );
+                        },
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const SizedBox(
+                          height: 4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
       ),

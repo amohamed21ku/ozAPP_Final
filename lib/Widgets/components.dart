@@ -404,3 +404,76 @@ class PreviousPricesTable extends StatelessWidget {
     );
   }
 }
+
+//==========================================================================================================
+
+class CustomSearchBar extends StatelessWidget {
+  final TextEditingController searchController;
+  final ValueChanged<String> onChanged;
+  final String hinttext;
+
+  const CustomSearchBar({
+    Key? key,
+    required this.searchController,
+    required this.onChanged,
+    required this.hinttext,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: searchController,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        labelText: 'Search',
+        hintText: hinttext,
+        hintStyle: GoogleFonts.poppins(
+          fontWeight: FontWeight.w200,
+          fontSize: 10,
+        ),
+        labelStyle: GoogleFonts.poppins(
+          color: Colors.grey,
+          fontSize: 12,
+        ),
+        prefixIcon: const Icon(
+          Icons.search,
+          color: Colors.grey,
+        ),
+        suffixIcon: searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(
+                  Icons.clear,
+                  color: Colors.grey,
+                ),
+                onPressed: () {
+                  searchController
+                      .clear(); // Clears the text in the search field
+                  onChanged(
+                      ''); // Calls the filter function to refresh the data
+                },
+              )
+            : null,
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            width: 1,
+            color: Colors.black45,
+          ),
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(
+            color: Color(0xffa4392f),
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+      ),
+      cursorColor: const Color(0xffa4392f),
+      style: GoogleFonts.poppins(
+        fontSize: 10,
+      ),
+    );
+  }
+}

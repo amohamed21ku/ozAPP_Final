@@ -64,7 +64,7 @@ class InfoCard extends StatelessWidget {
     Widget cardContent = GestureDetector(
       onTap: onpress,
       child: Material(
-        elevation: 1, // Add elevation to the whole container
+        elevation: 2, // Add elevation to the whole container
         borderRadius: BorderRadius.circular(30),
         child: Container(
           padding: const EdgeInsets.all(10),
@@ -107,6 +107,11 @@ class InfoCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (!isUser)
+                const Icon(
+                  Icons.arrow_back_ios,
+                  size: 15,
+                ),
             ],
           ),
         ),
@@ -117,7 +122,7 @@ class InfoCard extends StatelessWidget {
     if (!isUser) {
       return Dismissible(
         key: UniqueKey(), // Unique key for each card
-        direction: DismissDirection.startToEnd, // Swipe direction
+        direction: DismissDirection.endToStart, // Swipe direction
         confirmDismiss: (direction) async {
           return await showDialog(
             context: context,
@@ -175,7 +180,7 @@ class InfoCard extends StatelessWidget {
                 BorderRadius.circular(30.0), // Adjust the radius as needed
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.centerRight,
           child: const Icon(Icons.delete, color: Colors.white),
         ),
 

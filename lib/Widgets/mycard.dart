@@ -9,7 +9,6 @@ class MyCard extends StatefulWidget {
   final ValueChanged<String> onChangedPrice;
   final ValueChanged<bool> onChangedYardage;
   final ValueChanged<bool> onChangedHanger;
-  final VoidCallback onPressedDelete;
   final String kodu;
   final String name;
   final String date;
@@ -17,14 +16,14 @@ class MyCard extends StatefulWidget {
   final bool yardage;
   final bool hanger;
 
-  const MyCard({super.key,
+  const MyCard({
+    super.key,
     required this.onChangedKodu,
     required this.onChangedName,
     required this.onChangedDate,
     required this.onChangedPrice,
     required this.onChangedYardage,
     required this.onChangedHanger,
-    required this.onPressedDelete,
     required this.kodu,
     required this.name,
     required this.date,
@@ -52,7 +51,14 @@ class _MyCardState extends State<MyCard> {
     super.initState();
     _koduController = TextEditingController(text: widget.kodu);
     _nameController = TextEditingController(text: widget.name);
-    _dateController = TextEditingController(text: widget.date);
+
+    // Set today's date as the default date
+    _dateController = TextEditingController(
+      text: widget.date.isEmpty
+          ? DateTime.now().toString().split(' ')[0]
+          : widget.date,
+    );
+
     _priceController = TextEditingController(text: widget.price);
     _yardage = widget.yardage;
     _hanger = widget.hanger;
@@ -94,139 +100,100 @@ class _MyCardState extends State<MyCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: const BorderSide(color: Color(0xffa4392f), width: 1),
+      ),
+      elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Kodu',
-                      labelStyle: GoogleFonts.poppins(fontSize: 14, color: const Color(0xffa4392f)),
-                      isDense: true,
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xffa4392f)),
-                      ),
-                    ),
-                    cursorColor: const Color(0xffa4392f),
-                    controller: _koduController,
-                  ),
-                ),
+                _buildTextField(_koduController, 'Kodu'),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      labelStyle: GoogleFonts.poppins(fontSize: 14, color: const Color(0xffa4392f)),
-                      isDense: true,
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xffa4392f)),
-                      ),
-                    ),
-                    cursorColor: const Color(0xffa4392f),
-                    controller: _nameController,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete,size: 25,color:Colors.black26 ,),
-                  onPressed: widget.onPressedDelete,
-                ),
+                _buildTextField(_nameController, 'Name'),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
                     onTap: () => _selectDate(context),
                     child: AbsorbPointer(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Date',
-                          labelStyle: GoogleFonts.poppins(fontSize: 14, color: const Color(0xffa4392f)),
-                          isDense: true,
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xffa4392f)),
-                          ),
-                        ),
-                        cursorColor: const Color(0xffa4392f),
-                        controller: _dateController,
-                      ),
+                      child: _buildTextField(_dateController, 'Date',
+                          expanded: false),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Price',
-                      labelStyle: GoogleFonts.poppins(fontSize: 14, color: const Color(0xffa4392f)),
-                      isDense: true,
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xffa4392f)),
-                      ),
-                    ),
-                    cursorColor: const Color(0xffa4392f),
-                    controller: _priceController,
-                  ),
-                ),
-                const SizedBox(width: 41,)
+                _buildTextField(_priceController, 'Price'),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: _yardage,
-                        onChanged: (value) {
-                          widget.onChangedYardage(value ?? false);
-                          setState(() {
-                            _yardage = value ?? false;
-                          });
-                        },
-                        activeColor: const Color(0xffa4392f),
-                      ),
-                      Text(
-                        'Yardage',
-                        style: GoogleFonts.poppins(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: _hanger,
-                        onChanged: (value) {
-                          widget.onChangedHanger(value ?? false);
-                          setState(() {
-                            _hanger = value ?? false;
-                          });
-                        },
-                        activeColor: const Color(0xffa4392f),
-                      ),
-                      Text(
-                        'Hanger',
-                        style: GoogleFonts.poppins(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-
+                _buildCheckbox('Yardage', _yardage, (value) {
+                  setState(() => _yardage = value);
+                  widget.onChangedYardage(value);
+                }),
+                _buildCheckbox('Hanger', _hanger, (value) {
+                  setState(() => _hanger = value);
+                  widget.onChangedHanger(value);
+                }),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {bool expanded = true}) {
+    Widget textField = TextField(
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle:
+            GoogleFonts.poppins(fontSize: 14, color: const Color(0xffa4392f)),
+        isDense: true,
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xffa4392f)),
+        ),
+      ),
+      cursorColor: const Color(0xffa4392f),
+      controller: controller,
+    );
+
+    if (expanded) {
+      return Expanded(child: textField);
+    }
+    return textField;
+  }
+
+  Widget _buildCheckbox(
+      String label, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        Checkbox(
+          value: value,
+          onChanged: (bool? newValue) {
+            if (newValue != null) {
+              onChanged(newValue); // Ensure we pass a non-null value
+            }
+          },
+          activeColor: const Color(0xffa4392f),
+        ),
+      ],
     );
   }
 
@@ -240,7 +207,8 @@ class _MyCardState extends State<MyCard> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(primary: Color(0xffa4392f)),
-            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            buttonTheme:
+                const ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
         );
@@ -256,7 +224,7 @@ class _MyCardState extends State<MyCard> {
   }
 }
 
-
+// =========================================================================
 
 class MyCard2 extends StatefulWidget {
   final ValueChanged<String> onChangedKodu;
@@ -273,7 +241,8 @@ class MyCard2 extends StatefulWidget {
   final String price;
   final String date;
 
-  const MyCard2({super.key,
+  const MyCard2({
+    super.key,
     required this.onChangedKodu,
     required this.onChangedName,
     required this.onChangedEni,
@@ -368,56 +337,70 @@ class _MyCard2State extends State<MyCard2> {
           children: [
             Row(
               children: [
-          Expanded(
-                child: TextField(
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xffa4392f)),
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xffa4392f)),
+                      ),
                     ),
+                    cursorColor: const Color(0xffa4392f),
+                    controller: _koduController,
                   ),
-                  cursorColor: const Color(0xffa4392f),
-                  controller: _koduController,
                 ),
-              ),
-    Expanded(
-          child: TextField(
-            decoration: const InputDecoration(
-              isDense: true,
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xffa4392f)),
-              ),
-            ),
-            cursorColor: const Color(0xffa4392f),
-            controller: _nameController,
-          ),
-        ),
-    Expanded(
-          child: TextField(
-            decoration: const InputDecoration(
-              isDense: true,
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xffa4392f)),
-              ),
-            ),
-            cursorColor: const Color(0xffa4392f),
-            controller: _eniController,
-          ),
-        ),
-        Expanded(
-          child: TextField(
-            decoration: const InputDecoration(
-              isDense: true,
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xffa4392f)),
-              ),
-            ),
-            cursorColor: const Color(0xffa4392f),
-            controller: _gramajController,
-          ),
-        ),
-
-                    Expanded(
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xffa4392f)),
+                      ),
+                    ),
+                    cursorColor: const Color(0xffa4392f),
+                    controller: _nameController,
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xffa4392f)),
+                      ),
+                    ),
+                    cursorColor: const Color(0xffa4392f),
+                    controller: _eniController,
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xffa4392f)),
+                      ),
+                    ),
+                    cursorColor: const Color(0xffa4392f),
+                    controller: _gramajController,
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xffa4392f)),
+                      ),
+                    ),
+                    cursorColor: const Color(0xffa4392f),
+                    controller: _priceController,
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _selectDate(context),
+                    child: AbsorbPointer(
                       child: TextField(
                         decoration: const InputDecoration(
                           isDense: true,
@@ -426,145 +409,13 @@ class _MyCard2State extends State<MyCard2> {
                           ),
                         ),
                         cursorColor: const Color(0xffa4392f),
-                        controller: _priceController,
+                        controller: _dateController,
                       ),
                     ),
-
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _selectDate(context),
-                        child: AbsorbPointer(
-                          child: TextField(
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xffa4392f)),
-                              ),
-                            ),
-                            cursorColor: const Color(0xffa4392f),
-                            controller: _dateController,
-                          ),
-                        ),
-                      ),
-                    ),
-
+                  ),
+                ),
               ],
             )
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: TextField(
-            //         decoration: InputDecoration(
-            //           labelText: 'Kodu',
-            //           labelStyle: GoogleFonts.poppins(fontSize: 14, color: Color(0xffa4392f)),
-            //           isDense: true,
-            //           focusedBorder: UnderlineInputBorder(
-            //             borderSide: BorderSide(color: Color(0xffa4392f)),
-            //           ),
-            //         ),
-            //         cursorColor: Color(0xffa4392f),
-            //         controller: _koduController,
-            //       ),
-            //     ),
-            //     SizedBox(width: 8),
-            //     Expanded(
-            //       child: TextField(
-            //         decoration: InputDecoration(
-            //           labelText: 'Name',
-            //           labelStyle: GoogleFonts.poppins(fontSize: 14, color: Color(0xffa4392f)),
-            //           isDense: true,
-            //           focusedBorder: UnderlineInputBorder(
-            //             borderSide: BorderSide(color: Color(0xffa4392f)),
-            //           ),
-            //         ),
-            //         cursorColor: Color(0xffa4392f),
-            //         controller: _nameController,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: TextField(
-            //         decoration: InputDecoration(
-            //           labelText: 'Eni',
-            //           labelStyle: GoogleFonts.poppins(fontSize: 14, color: Color(0xffa4392f)),
-            //           isDense: true,
-            //           focusedBorder: UnderlineInputBorder(
-            //             borderSide: BorderSide(color: Color(0xffa4392f)),
-            //           ),
-            //         ),
-            //         cursorColor: Color(0xffa4392f),
-            //         controller: _eniController,
-            //       ),
-            //     ),
-            //     SizedBox(width: 8),
-            //     Expanded(
-            //       child: TextField(
-            //         decoration: InputDecoration(
-            //           labelText: 'Gramaj',
-            //           labelStyle: GoogleFonts.poppins(fontSize: 14, color: Color(0xffa4392f)),
-            //           isDense: true,
-            //           focusedBorder: UnderlineInputBorder(
-            //             borderSide: BorderSide(color: Color(0xffa4392f)),
-            //           ),
-            //         ),
-            //         cursorColor: Color(0xffa4392f),
-            //         controller: _gramajController,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // SizedBox(height: 4),
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: GestureDetector(
-            //         onTap: () => _selectDate(context),
-            //         child: AbsorbPointer(
-            //           child: TextField(
-            //             decoration: InputDecoration(
-            //               labelText: 'Date',
-            //               labelStyle: GoogleFonts.poppins(fontSize: 14, color: Color(0xffa4392f)),
-            //               isDense: true,
-            //               focusedBorder: UnderlineInputBorder(
-            //                 borderSide: BorderSide(color: Color(0xffa4392f)),
-            //               ),
-            //             ),
-            //             cursorColor: Color(0xffa4392f),
-            //             controller: _dateController,
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //     SizedBox(width: 8),
-            //     Expanded(
-            //       child: TextField(
-            //         decoration: InputDecoration(
-            //           labelText: 'Price',
-            //           labelStyle: GoogleFonts.poppins(fontSize: 14, color: Color(0xffa4392f)),
-            //           isDense: true,
-            //           focusedBorder: UnderlineInputBorder(
-            //             borderSide: BorderSide(color: Color(0xffa4392f)),
-            //           ),
-            //         ),
-            //         cursorColor: Color(0xffa4392f),
-            //         controller: _priceController,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // SizedBox(height: 4),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.end,
-            //   children: [
-            //     IconButton(
-            //       icon: Icon(Icons.delete),
-            //       onPressed: widget.onPressedDelete,
-            //     ),
-            //   ],
-            // ),
           ],
         ),
       ),
@@ -581,7 +432,8 @@ class _MyCard2State extends State<MyCard2> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(primary: Color(0xffa4392f)),
-            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            buttonTheme:
+                const ButtonThemeData(textTheme: ButtonTextTheme.primary),
           ),
           child: child!,
         );
@@ -597,8 +449,6 @@ class _MyCard2State extends State<MyCard2> {
   }
 }
 
-
-
 class EditCard extends StatelessWidget {
   final int index;
   final Map<String, dynamic> item;
@@ -608,9 +458,8 @@ class EditCard extends StatelessWidget {
   final Future<void> Function(BuildContext, int) selectDate;
   final Future<bool?> Function(int) confirmDeleteItem;
 
-
-  const EditCard({super.key,
-
+  const EditCard({
+    super.key,
     required this.index,
     required this.item,
     required this.columnOrder,
@@ -623,76 +472,76 @@ class EditCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: UniqueKey(),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (direction) async {
-        return await confirmDeleteItem(index);
-      },
-      onDismissed: (direction) {
-        onDelete(index);
-      },
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            children: columnOrder
-                .where((column) => columnVisibility[column]!)
-                .map((column) {
-              final value = item[column] ?? item['Item $column'];
-              return Expanded(
-                child: column == 'Date'
-                    ? GestureDetector(
-                  onTap: () => selectDate(context, index),
-                  child: AbsorbPointer(
-                    child: TextField(
-                      controller: TextEditingController(
-                        text: value.toString(),
-                      ),
-                      onChanged: (value) {
-                        item[column] = value;
-
-
-                      },
-                      style: GoogleFonts.poppins(fontSize: 12),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                )
-                    : TextField(
-                  controller: TextEditingController(
-                    text: value.toString(),
-                  ),
-                  onChanged: (value) {
-                    if(column == 'Name'){
-                      column = 'Item Name';
-                    }
-                    item[column] = value;
-
-
-                  },
-
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
+        key: UniqueKey(),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return await confirmDeleteItem(index);
+        },
+        onDismissed: (direction) {
+          onDelete(index);
+        },
+        background: Container(
+          color: const Color(0xffa4392f),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: const Icon(Icons.delete, color: Colors.white),
         ),
-      ),
-    );
+        child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0), // Adjust the radius here
+          ),
+          color: const Color(0xfffcfcfc),
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+            child: Row(
+              children: columnOrder
+                  .where((column) => columnVisibility[column]!)
+                  .map((column) {
+                final value = item[column] ?? item['Item $column'];
+                return Expanded(
+                  child: column == 'Date'
+                      ? GestureDetector(
+                          onTap: () => selectDate(context, index),
+                          child: AbsorbPointer(
+                            child: TextField(
+                              controller: TextEditingController(
+                                text: value.toString(),
+                              ),
+                              onChanged: (value) {
+                                item[column] = value;
+                              },
+                              style: GoogleFonts.poppins(fontSize: 12),
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        )
+                      : TextField(
+                          controller: TextEditingController(
+                            text: value.toString(),
+                          ),
+                          onChanged: (value) {
+                            if (column == 'Name') {
+                              column = 'Item Name';
+                            }
+                            item[column] = value;
+                          },
+                          style: GoogleFonts.poppins(fontSize: 12),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: InputBorder.none,
+                          ),
+                          maxLines: 2,
+                          cursorColor: const Color(0xffa4392f),
+                          // Allows up to 2 lines of text
+                        ),
+                );
+              }).toList(),
+            ),
+          ),
+        ));
   }
-
-
 }
-

@@ -69,7 +69,7 @@ class _BuildToDoState extends State<BuildToDo> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: widget.showadd ? Color(0xbba4392f) : Colors.white,
+      color: widget.showadd ? const Color(0xbba4392f) : Colors.white,
       elevation: widget.showadd ? 5 : 0,
       shape: RoundedRectangleBorder(
         borderRadius: widget.showadd
@@ -78,8 +78,8 @@ class _BuildToDoState extends State<BuildToDo> {
       ),
       child: Padding(
         padding: widget.showadd
-            ? EdgeInsets.all(10.0)
-            : EdgeInsets.symmetric(horizontal: 10.0),
+            ? const EdgeInsets.all(10.0)
+            : const EdgeInsets.symmetric(horizontal: 10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -138,7 +138,7 @@ class _BuildToDoState extends State<BuildToDo> {
       BuildContext context, Map<String, dynamic> event, int index) {
     return Dismissible(
       key: UniqueKey(),
-      direction: DismissDirection.startToEnd,
+      direction: DismissDirection.endToStart,
       confirmDismiss: (direction) async {
         return await showDialog(
           context: context,
@@ -184,7 +184,7 @@ class _BuildToDoState extends State<BuildToDo> {
       },
       background: Container(
         color: Colors.white70,
-        alignment: Alignment.centerLeft,
+        alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: const Icon(
           Icons.delete,
@@ -274,7 +274,7 @@ class _BuildToDoState extends State<BuildToDo> {
                 ),
               ),
               const Icon(
-                Icons.arrow_forward_ios,
+                Icons.arrow_back_ios,
                 size: 15,
               ),
             ],
