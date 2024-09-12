@@ -2,6 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../Screens/itemDetails.dart';
+import '../models/GsheetAPI.dart';
+import 'mycard.dart';
+
 class RoundedButton extends StatelessWidget {
   const RoundedButton(
       {super.key,
@@ -474,6 +478,191 @@ class CustomSearchBar extends StatelessWidget {
       style: GoogleFonts.poppins(
         fontSize: 10,
       ),
+    );
+  }
+}
+
+// ========================The Item Screen =========================================
+
+class CustomItems extends StatelessWidget {
+  final bool isVisible;
+  final TextEditingController searchController;
+  final Function(String) filterData;
+  final VoidCallback saveChangesToFirebase;
+  final VoidCallback showColumnSelector;
+  final List<String> columnOrder;
+  final Map<String, bool> columnVisibility;
+  final List<Map<String, dynamic>> filteredList;
+  final bool edit;
+  final Function(int) deleteItem;
+  final Future<void> Function(BuildContext, int) selectDate;
+  final Future<bool?> Function(int) confirmDeleteItem;
+  final Function(bool) fetchDataFromFirestore;
+
+  const CustomItems({
+    Key? key,
+    required this.isVisible,
+    required this.searchController,
+    required this.filterData,
+    required this.saveChangesToFirebase,
+    required this.showColumnSelector,
+    required this.columnOrder,
+    required this.columnVisibility,
+    required this.filteredList,
+    required this.edit,
+    required this.deleteItem,
+    required this.selectDate,
+    required this.confirmDeleteItem,
+    required this.fetchDataFromFirestore,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Visibility(
+          visible: isVisible,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomSearchBar(
+                        searchController: searchController,
+                        onChanged: filterData,
+                        hinttext: 'Search by Kodu or Name',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: GsheetAPI().uploadDataToFirestore,
+                      icon: const Icon(
+                        size: 25,
+                        Icons.cloud_download_rounded,
+                        color: Color(0xffa4392f),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: GsheetAPI().uploadDataToGoogleSheet,
+                      icon: const Icon(
+                        size: 25,
+                        Icons.upload,
+                        color: Color(0xffa4392f),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: saveChangesToFirebase,
+                      icon: const Icon(
+                        size: 25,
+                        Icons.save,
+                        color: Color(0xffa4392f),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
+                      'Item Count: ${filteredList.length}',
+                      style: GoogleFonts.poppins(
+                          color: Colors.black, fontSize: 14),
+                    ),
+                    GestureDetector(
+                      onTap: showColumnSelector,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: showColumnSelector,
+                            icon: const Icon(
+                              size: 20,
+                              Icons.view_column,
+                              color: Color(0xffa4392f),
+                            ),
+                          ),
+                          Text(
+                            'Select Columns',
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xffa4392f),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Card(
+          color: const Color(0xffa4392f),
+          margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(isVisible ? 10.0 : 0.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+            child: Row(
+              children: columnOrder
+                  .where((column) => columnVisibility[column]!)
+                  .map((column) => Expanded(
+                        child: Text(
+                          column,
+                          style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: filteredList.length,
+            itemBuilder: (context, index) {
+              return edit
+                  ? EditCard(
+                      index: index,
+                      item: filteredList[index],
+                      onDelete: (int index) {
+                        deleteItem(index);
+                      },
+                      selectDate: selectDate,
+                      confirmDeleteItem: confirmDeleteItem,
+                      columnOrder: columnOrder,
+                      columnVisibility: columnVisibility,
+                    )
+                  : GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ItemDetailsScreen(
+                              item: filteredList[index],
+                              docId: filteredList[index]['id'],
+                            ),
+                          ),
+                        );
+                      },
+                      child: ItemCard(
+                        Item: filteredList[index],
+                        columnOrder: columnOrder,
+                        columnVisibility: columnVisibility,
+                        index: index,
+                      ),
+                    );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

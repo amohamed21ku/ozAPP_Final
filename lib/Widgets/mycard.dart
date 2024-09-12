@@ -449,6 +449,61 @@ class _MyCard2State extends State<MyCard2> {
   }
 }
 
+// =====================================================================================================================
+
+class ItemCard extends StatelessWidget {
+  final List<String> columnOrder;
+  final Map<String, bool> columnVisibility;
+  final Map<String, dynamic> Item;
+  final int index;
+
+  ItemCard({
+    required this.columnOrder,
+    required this.columnVisibility,
+    required this.Item,
+    required this.index,
+  });
+
+  String formatDateString(DateTime date) {
+    // Replace with your custom date formatting logic
+    return '${date.year}-${date.month}-${date.day}';
+  }
+
+  DateTime excelSerialDateToDateTime(int value) {
+    // Replace with your logic to convert serial date to DateTime
+    return DateTime(1900).add(Duration(days: value - 2));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(2.0), // Adjust the radius here
+      ),
+      color: const Color(0xfffcfcfc),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+        child: Row(
+          children: columnOrder
+              .where((column) => columnVisibility[column]!)
+              .map((column) {
+            final value = Item[column] ?? Item['Item $column'];
+            return Expanded(
+              child: Text(
+                column == 'Date' && value is int
+                    ? formatDateString(excelSerialDateToDateTime(value))
+                    : value.toString(),
+                style: GoogleFonts.poppins(fontSize: 12),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}
+
 class EditCard extends StatelessWidget {
   final int index;
   final Map<String, dynamic> item;

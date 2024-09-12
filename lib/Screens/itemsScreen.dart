@@ -4,12 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:oz/models/GsheetAPI.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/components.dart';
-import '../Widgets/mycard.dart';
-import 'itemDetails.dart';
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -424,20 +420,14 @@ class ItemsScreenState extends State<ItemsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            // saveChangesToFirebase();
             Navigator.pop(context);
           },
         ),
         backgroundColor: const Color(0xffa4392f),
-        title: Text(
-          'Items Screen',
-          style: GoogleFonts.poppins(color: Colors.white),
-        ),
+        title: Text('Items Screen',
+            style: GoogleFonts.poppins(color: Colors.white)),
         actions: [
           IconButton(
             onPressed: () {
@@ -445,10 +435,7 @@ class ItemsScreenState extends State<ItemsScreen> {
                 edit = !edit;
               });
             },
-            icon: Icon(
-              edit ? Icons.edit_off : Icons.edit,
-              color: Colors.white,
-            ),
+            icon: Icon(edit ? Icons.edit_off : Icons.edit, color: Colors.white),
           ),
           IconButton(
             onPressed: () {
@@ -457,206 +444,64 @@ class ItemsScreenState extends State<ItemsScreen> {
               });
             },
             icon: Icon(
-              size: 30,
-              isVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-              color: Colors.white,
-            ),
+                size: 30,
+                isVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                color: Colors.white),
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('items').snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                    Color(0xffa4392f)), // Change spinner color to theme color
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
               ),
-            )
-          : RefreshIndicator(
-              onRefresh: () => fetchDataFromFirestore(true),
-              color: const Color(
-                  0xffa4392f), // Change refresh indicator color to theme color
-              backgroundColor: Colors
-                  .grey[200], // Change background color of refresh indicator
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Visibility(
-                    visible: isVisible,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomSearchBar(
-                                  searchController: searchController,
-                                  onChanged: filterData,
-                                  hinttext: 'Search by Kodu or Name',
-                                ),
-                              ),
-                              const SizedBox(
-                                  width:
-                                      8), // Add some space between TextField and Button
-                              IconButton(
-                                onPressed: GsheetAPI().uploadDataToFirestore,
-                                icon: const Icon(
-                                  size: 25,
-                                  Icons.cloud_download_rounded,
-                                  color: Color(0xffa4392f),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: GsheetAPI().uploadDataToGoogleSheet,
-                                icon: const Icon(
-                                  size: 25,
-                                  Icons.upload,
-                                  color: Color(0xffa4392f),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: saveChangesToFirebase,
-                                icon: const Icon(
-                                  size: 25,
-                                  Icons.save,
-                                  color: Color(0xffa4392f),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Text(
-                                'Item Count: ${filteredList.length}',
-                                style: GoogleFonts.poppins(
-                                    color: Colors.black, fontSize: 14),
-                              ),
-                              GestureDetector(
-                                onTap: showColumnSelector,
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                      onPressed: showColumnSelector,
-                                      icon: const Icon(
-                                        size: 20,
-                                        Icons.view_column,
-                                        color: Color(0xffa4392f),
-                                      ),
-                                    ),
-                                    Text(
-                                      'Select Columns',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(0xffa4392f),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Card(
-                    color: const Color(0xffa4392f),
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(isVisible ? 10.0 : 0.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                      child: Row(
-                        children: columnOrder
-                            .where((column) => columnVisibility[column]!)
-                            .map((column) => Expanded(
-                                  child: Text(
-                                    column,
-                                    style: GoogleFonts.poppins(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 12),
-                                  ),
-                                ))
-                            .toList(),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        return edit
-                            ? EditCard(
-                                index: index,
-                                item: filteredList[index],
-                                onDelete: (int index) {
-                                  deleteItem(index);
-                                },
-                                selectDate: _selectDate,
-                                confirmDeleteItem: confirmDeleteItem,
-                                columnOrder: columnOrder,
-                                columnVisibility: columnVisibility,
-                              )
-                            : GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ItemDetailsScreen(
-                                        item: filteredList[index],
-                                        docId: filteredList[index]['id'],
-                                      ),
-                                    ),
-                                  ).then((_) {
-                                    fetchDataFromFirestore(true);
-                                  });
-                                },
-                                child: Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        2.0), // Adjust the radius here
-                                  ),
-                                  color: Color(0xfffcfcfc),
-                                  elevation: 2,
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                    child: Row(
-                                      children: columnOrder
-                                          .where((column) =>
-                                              columnVisibility[column]!)
-                                          .map((column) {
-                                        final value = filteredList[index]
-                                                [column] ??
-                                            filteredList[index]['Item $column'];
-                                        return Expanded(
-                                          child: Text(
-                                            column == 'Date' && value is int
-                                                ? formatDateString(
-                                                    excelSerialDateToDateTime(
-                                                        value))
-                                                : value.toString(),
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 12),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ),
-                              );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No items found'));
+          }
+
+          // Parse the data and update the list
+          dataList = snapshot.data!.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            data['id'] = doc.id; // Add document ID to the data
+            return data;
+          }).toList();
+
+          // Sort the data by "Kodu" field if necessary
+          dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
+          filteredList = dataList;
+
+          return RefreshIndicator(
+            onRefresh: () => fetchDataFromFirestore(true),
+            color: const Color(0xffa4392f),
+            backgroundColor: Colors.grey[200],
+            child: CustomItems(
+              isVisible: isVisible,
+              searchController: searchController,
+              filterData: filterData,
+              saveChangesToFirebase: saveChangesToFirebase,
+              showColumnSelector: showColumnSelector,
+              columnOrder: columnOrder,
+              columnVisibility: columnVisibility,
+              filteredList: filteredList,
+              edit: edit,
+              deleteItem: deleteItem,
+              selectDate: _selectDate,
+              confirmDeleteItem: confirmDeleteItem,
+              fetchDataFromFirestore: fetchDataFromFirestore,
             ),
+          );
+        },
+      ),
       floatingActionButton: edit
           ? FloatingActionButton(
               onPressed: addNewItem,
