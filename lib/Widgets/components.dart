@@ -497,7 +497,7 @@ class CustomItems extends StatelessWidget {
   final Function(int) deleteItem;
   final Future<void> Function(BuildContext, int) selectDate;
   final Future<bool?> Function(int) confirmDeleteItem;
-  final Function(bool) fetchDataFromFirestore;
+  // final Function(bool) fetchDataFromFirestore;
 
   const CustomItems({
     Key? key,
@@ -513,11 +513,12 @@ class CustomItems extends StatelessWidget {
     required this.deleteItem,
     required this.selectDate,
     required this.confirmDeleteItem,
-    required this.fetchDataFromFirestore,
+    // required this.fetchDataFromFirestore,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    print('This is the FilteredList: $filteredList');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

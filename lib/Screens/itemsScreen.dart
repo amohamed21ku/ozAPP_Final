@@ -68,13 +68,16 @@ class ItemsScreenState extends State<ItemsScreen> {
     }
   }
 
+  String selectedItem = 'Polyester';
+  String collection = 'items';
+
   @override
   void initState() {
     super.initState();
     loadColumnPreferences(); // Load saved preferences
 
     fetchDataFromCache();
-    fetchDataFromFirestore(true);
+    // fetchDataFromFirestore('items2', true);
   }
 
   void showColumnSelector() {
@@ -248,30 +251,31 @@ class ItemsScreenState extends State<ItemsScreen> {
     return formatter.format(date);
   }
 
-  Future<void> fetchDataFromFirestore(bool withLoading) async {
-    searchController.clear();
-    setState(() => isLoading = withLoading);
-    QuerySnapshot<Map<String, dynamic>> querySnapshot =
-        await FirebaseFirestore.instance.collection('items').get();
-
-    dataList = querySnapshot.docs.map((doc) {
-      Map<String, dynamic> data = doc.data();
-      data['id'] = doc.id; // Add the document ID to the data
-      return data;
-    }).toList();
-
-    // Sort dataList based on "Kodu" field
-    dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
-
-    filteredList = dataList;
-
-    // Cache the data
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'itemsData', jsonEncode(dataList)); // Use jsonEncode here
-
-    setState(() => isLoading = false);
-  }
+  // Future<void> fetchDataFromFirestore(
+  //     String collection, bool withLoading) async {
+  //   searchController.clear();
+  //   setState(() => isLoading = withLoading);
+  //
+  //   QuerySnapshot<Map<String, dynamic>> querySnapshot =
+  //       await FirebaseFirestore.instance.collection(collection).get();
+  //
+  //   dataList = querySnapshot.docs.map((doc) {
+  //     Map<String, dynamic> data = doc.data();
+  //     data['id'] = doc.id; // Add the document ID to the data
+  //     return data;
+  //   }).toList();
+  //
+  //   // Sort dataList based on "Kodu" field
+  //   dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
+  //
+  //   filteredList = dataList;
+  //
+  //   // Cache the data
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   await prefs.setString('itemsData', jsonEncode(dataList));
+  //
+  //   setState(() => isLoading = false);
+  // }
 
   Future<void> saveChangesToFirebase() async {
     WriteBatch batch = FirebaseFirestore.instance.batch();
@@ -355,7 +359,7 @@ class ItemsScreenState extends State<ItemsScreen> {
       itemsToDelete.clear();
 
       await batch.commit();
-      await fetchDataFromFirestore(false);
+      // await fetchDataFromFirestore('items2', false);
       await saveDataToSharedPreferences();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data Saved')),
@@ -426,8 +430,29 @@ class ItemsScreenState extends State<ItemsScreen> {
           },
         ),
         backgroundColor: const Color(0xffa4392f),
-        title: Text('Items Screen',
-            style: GoogleFonts.poppins(color: Colors.white)),
+        title: DropdownButton<String>(
+          value: selectedItem,
+          dropdownColor: const Color(0xffa4392f),
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
+          underline: Container(), // Hide underline
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+          items: <String>['Polyester', 'Naylon'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedItem = newValue!;
+              if (selectedItem == 'Polyester') {
+                collection = 'items';
+              } else {
+                collection = 'items2';
+              }
+            });
+          },
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -451,7 +476,7 @@ class ItemsScreenState extends State<ItemsScreen> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('items').snapshots(),
+        stream: FirebaseFirestore.instance.collection(collection).snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -480,26 +505,28 @@ class ItemsScreenState extends State<ItemsScreen> {
           dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
           filteredList = dataList;
 
-          return RefreshIndicator(
-            onRefresh: () => fetchDataFromFirestore(true),
-            color: const Color(0xffa4392f),
-            backgroundColor: Colors.grey[200],
-            child: CustomItems(
-              isVisible: isVisible,
-              searchController: searchController,
-              filterData: filterData,
-              saveChangesToFirebase: saveChangesToFirebase,
-              showColumnSelector: showColumnSelector,
-              columnOrder: columnOrder,
-              columnVisibility: columnVisibility,
-              filteredList: filteredList,
-              edit: edit,
-              deleteItem: deleteItem,
-              selectDate: _selectDate,
-              confirmDeleteItem: confirmDeleteItem,
-              fetchDataFromFirestore: fetchDataFromFirestore,
-            ),
+          return
+              // RefreshIndicator(
+              // onRefresh: () => fetchDataFromFirestore('items', true),
+              // color: const Color(0xffa4392f),
+              // backgroundColor: Colors.grey[200],
+              // child:
+              CustomItems(
+            isVisible: isVisible,
+            searchController: searchController,
+            filterData: filterData,
+            saveChangesToFirebase: saveChangesToFirebase,
+            showColumnSelector: showColumnSelector,
+            columnOrder: columnOrder,
+            columnVisibility: columnVisibility,
+            filteredList: filteredList,
+            edit: edit,
+            deleteItem: deleteItem,
+            selectDate: _selectDate,
+            confirmDeleteItem: confirmDeleteItem,
+            // fetchDataFromFirestore: fetchDataFromFirestore,
           );
+          // );
         },
       ),
       floatingActionButton: edit
