@@ -725,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       radius: 30.0,
                       backgroundImage: currentUser.profilePicture != null
                           ? CachedNetworkImageProvider(
-                              currentUser.profilePicture!)
+                              currentUser.profilePicture)
                           : const AssetImage('images/man.png') as ImageProvider,
                     ),
                   ),

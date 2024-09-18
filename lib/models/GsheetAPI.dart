@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gsheets/gsheets.dart';
 
 class GsheetAPI {
+  final String SelectedItems;
+  GsheetAPI({required this.SelectedItems});
+
   static const _credentials = r'''
 {
   "type": "service_account",
@@ -20,20 +23,19 @@ class GsheetAPI {
 
   static final _spreadsheetId = '1sSOWqyP0VTg_Qn-Bo_dUeG20lTmrUcSXaVniPZ56sIU';
   static final _gsheets = GSheets(_credentials);
-  static Worksheet? _worksheet;
+  static Worksheet? worksheet;
 
   Future<void> init() async {
     final ss = await _gsheets.spreadsheet(_spreadsheetId);
-    _worksheet = ss.worksheetByTitle('Items') ?? await ss.addWorksheet('Items');
+    worksheet = ss.worksheetByTitle(SelectedItems) ??
+        await ss.addWorksheet(SelectedItems);
   }
 
 // NEED THIS ...
   Future<List<Map<String, dynamic>>> fetchSheetData() async {
-    if (_worksheet == null) {
-      await init();
-    }
+    await init();
 
-    final rows = await _worksheet!.values.allRows();
+    final rows = await worksheet!.values.allRows();
     List<Map<String, dynamic>> items = [];
 
     if (rows.isEmpty || rows[0].isEmpty) {
@@ -93,28 +95,35 @@ class GsheetAPI {
 
     final sheetDataMap = {
       for (var item in sheetData)
-        if (item['Kodu'] != null && item['Kodu'].toString() != '')
+        if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
           item['Kodu']: item
     };
 
-    for (var docId in firestoreData.keys) {
-      if (!sheetDataMap.containsKey(docId)) {
-        await firestore.collection('items').doc(docId).delete();
-      }
-    }
+    // Start a batch for Firestore writes
+    final batch = firestore.batch();
 
-    for (var item in sheetData) {
-      final docId = item['Kodu'];
-      if (docId != null && docId.toString().isNotEmpty) {
-        await firestore.collection('items').doc(docId).set(item);
+    // Delete documents in Firestore that are not present in the sheet data
+    firestoreData.forEach((docId, _) {
+      if (!sheetDataMap.containsKey(docId)) {
+        final docRef = firestore.collection(SelectedItems).doc(docId);
+        batch.delete(docRef);
       }
-    }
+    });
+
+    // Add or update documents in Firestore based on the sheet data
+    sheetDataMap.forEach((docId, item) {
+      final docRef = firestore.collection(SelectedItems).doc(docId);
+      batch.set(docRef, item);
+    });
+
+    // Commit the batch
+    await batch.commit();
   }
 
   // NEED THIS ...
   Future<Map<String, dynamic>> fetchFirestoreData() async {
     final firestore = FirebaseFirestore.instance;
-    final querySnapshot = await firestore.collection('items').get();
+    final querySnapshot = await firestore.collection(SelectedItems).get();
     final items = <String, dynamic>{};
 
     for (var doc in querySnapshot.docs) {
@@ -126,7 +135,7 @@ class GsheetAPI {
 
   Future<void> uploadDataToGoogleSheet() async {
     final firestore = FirebaseFirestore.instance;
-    final querySnapshot = await firestore.collection('items').get();
+    final querySnapshot = await firestore.collection(SelectedItems).get();
 
     List<List<dynamic>> sheetData = [
       [
@@ -180,18 +189,14 @@ class GsheetAPI {
       sheetData.add(row);
     }
 
-    if (_worksheet == null) {
-      await init();
-    }
+    await init();
 
-    await _worksheet!.clear();
-    await _worksheet!.values.insertRows(1, sheetData);
+    await worksheet!.clear();
+    await worksheet!.values.insertRows(1, sheetData);
 
-    if (_worksheet == null) {
-      await init();
-    }
+    await init();
 
-    await _worksheet!.clear();
-    await _worksheet!.values.insertRows(1, sheetData);
+    await worksheet!.clear();
+    await worksheet!.values.insertRows(1, sheetData);
   }
 }

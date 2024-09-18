@@ -6,8 +6,13 @@ import 'package:intl/intl.dart';
 class ItemDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> item;
   final String docId;
+  final String SelectedItems;
 
-  const ItemDetailsScreen({super.key, required this.item, required this.docId});
+  const ItemDetailsScreen(
+      {super.key,
+      required this.item,
+      required this.docId,
+      required this.SelectedItems});
 
   @override
   _ItemDetailsScreenState createState() => _ItemDetailsScreenState();
@@ -68,7 +73,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
       try {
         await FirebaseFirestore.instance
-            .collection('items')
+            .collection(widget.SelectedItems)
             .doc(widget.docId)
             .update({'Previous_Prices': previousPrices});
         ScaffoldMessenger.of(context).showSnackBar(
@@ -221,7 +226,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       };
 
       await FirebaseFirestore.instance
-          .collection('items')
+          .collection(widget.SelectedItems)
           .doc(widget.docId)
           .update(updatedData);
 
@@ -322,7 +327,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   Widget buildEditableCard(String label, TextEditingController controller) {
     return Card(
       // color: Colors.white10,
-      elevation: 10,
+      elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),

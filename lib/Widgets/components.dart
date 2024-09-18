@@ -485,6 +485,7 @@ class CustomSearchBar extends StatelessWidget {
 // ========================The Item Screen =========================================
 
 class CustomItems extends StatelessWidget {
+  final String SelectedItems;
   final bool isVisible;
   final TextEditingController searchController;
   final Function(String) filterData;
@@ -513,118 +514,15 @@ class CustomItems extends StatelessWidget {
     required this.deleteItem,
     required this.selectDate,
     required this.confirmDeleteItem,
+    required this.SelectedItems,
     // required this.fetchDataFromFirestore,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print('This is the FilteredList: $filteredList');
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Visibility(
-          visible: isVisible,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomSearchBar(
-                        searchController: searchController,
-                        onChanged: filterData,
-                        hinttext: 'Search by Kodu or Name',
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: GsheetAPI().uploadDataToFirestore,
-                      icon: const Icon(
-                        size: 25,
-                        Icons.cloud_download_rounded,
-                        color: Color(0xffa4392f),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: GsheetAPI().uploadDataToGoogleSheet,
-                      icon: const Icon(
-                        size: 25,
-                        Icons.upload,
-                        color: Color(0xffa4392f),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: saveChangesToFirebase,
-                      icon: const Icon(
-                        size: 25,
-                        Icons.save,
-                        color: Color(0xffa4392f),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      'Item Count: ${filteredList.length}',
-                      style: GoogleFonts.poppins(
-                          color: Colors.black, fontSize: 14),
-                    ),
-                    GestureDetector(
-                      onTap: showColumnSelector,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: showColumnSelector,
-                            icon: const Icon(
-                              size: 20,
-                              Icons.view_column,
-                              color: Color(0xffa4392f),
-                            ),
-                          ),
-                          Text(
-                            'Select Columns',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xffa4392f),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        Card(
-          color: const Color(0xffa4392f),
-          margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(isVisible ? 10.0 : 0.0),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-            child: Row(
-              children: columnOrder
-                  .where((column) => columnVisibility[column]!)
-                  .map((column) => Expanded(
-                        child: Text(
-                          column,
-                          style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12),
-                        ),
-                      ))
-                  .toList(),
-            ),
-          ),
-        ),
         Expanded(
           child: ListView.builder(
             itemCount: filteredList.length,
@@ -646,11 +544,11 @@ class CustomItems extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ItemDetailsScreen(
-                              item: filteredList[index],
-                              docId: filteredList[index]['id'],
-                            ),
-                          ),
+                              builder: (context) => ItemDetailsScreen(
+                                    SelectedItems: SelectedItems,
+                                    item: filteredList[index],
+                                    docId: filteredList[index]['id'],
+                                  )),
                         );
                       },
                       child: ItemCard(

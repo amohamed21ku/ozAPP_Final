@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/components.dart';
+import '../models/GsheetAPI.dart';
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -18,28 +19,34 @@ class ItemsScreenState extends State<ItemsScreen> {
   bool isLoading = false;
   bool isVisible = true;
   bool edit = false;
+  String selectedItem = 'Polyester';
+
   List<Map<String, dynamic>> dataList = [];
   List<Map<String, dynamic>> filteredList = [];
   List<Map<String, dynamic>> itemsToDelete = [];
+  bool isSearching = false; // Track whether the search bar is active
 
   TextEditingController searchController = TextEditingController();
+
   List<String> columnOrder = [
     'Kodu',
     'Name',
     'Eni',
     'Gramaj',
+    'Composition',
     'Price',
     'Date',
     'Supplier',
     'Kalite',
     'NOT',
-    'Item No'
+    'Item No',
   ];
   Map<String, bool> columnVisibility = {
     'Kodu': true,
     'Name': true,
     'Eni': true,
     'Gramaj': true,
+    'Composition': false,
     'Price': true,
     'Date': false,
     'Supplier': false,
@@ -47,18 +54,24 @@ class ItemsScreenState extends State<ItemsScreen> {
     'NOT': false,
     'Item No': false,
   };
-  // Save column preferences to shared preferences
+  // Save column preferences to shared preferences based on the selected item (Polyester or Naylon)
   Future<void> saveColumnPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('columnOrder', jsonEncode(columnOrder));
-    await prefs.setString('columnVisibility', jsonEncode(columnVisibility));
+    String keyOrder = '${selectedItem}_columnOrder';
+    String keyVisibility = '${selectedItem}_columnVisibility';
+
+    await prefs.setString(keyOrder, jsonEncode(columnOrder));
+    await prefs.setString(keyVisibility, jsonEncode(columnVisibility));
   }
 
-  // Load column preferences from shared preferences
+// Load column preferences from shared preferences based on the selected item (Polyester or Naylon)
   Future<void> loadColumnPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedOrder = prefs.getString('columnOrder');
-    String? savedVisibility = prefs.getString('columnVisibility');
+    String keyOrder = '${selectedItem}_columnOrder';
+    String keyVisibility = '${selectedItem}_columnVisibility';
+
+    String? savedOrder = prefs.getString(keyOrder);
+    String? savedVisibility = prefs.getString(keyVisibility);
 
     if (savedOrder != null) {
       columnOrder = List<String>.from(jsonDecode(savedOrder));
@@ -68,16 +81,48 @@ class ItemsScreenState extends State<ItemsScreen> {
     }
   }
 
-  String selectedItem = 'Polyester';
-  String collection = 'items';
-
+  // String collection = 'items';
   @override
   void initState() {
     super.initState();
-    loadColumnPreferences(); // Load saved preferences
-
+    loadColumnPreferences();
     fetchDataFromCache();
-    // fetchDataFromFirestore('items2', true);
+    // Listen to changes in the search input
+    searchController.addListener(() {
+      filterData(searchController.text);
+    });
+  }
+
+  Future<void> fetchDataForSelectedItem() async {
+    setState(() {
+      isLoading = true;
+      filteredList = []; // Clear the current list to avoid confusion
+    });
+
+    // Fetch data from Firebase for the selected item
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection(selectedItem).get();
+
+      dataList = snapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // Add document ID to the data
+        return data;
+      }).toList();
+
+      // Ensure dataList is sorted
+      dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
+
+      setState(() {
+        filteredList = List.from(dataList); // Update the filtered list
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error fetching data: $e');
+    }
   }
 
   void showColumnSelector() {
@@ -229,7 +274,7 @@ class ItemsScreenState extends State<ItemsScreen> {
     if (!filteredList[index].containsKey('isNew')) {
       try {
         await FirebaseFirestore.instance
-            .collection('items')
+            .collection(selectedItem)
             .doc(filteredList[index]['id'])
             .delete();
       } catch (e) {
@@ -251,32 +296,6 @@ class ItemsScreenState extends State<ItemsScreen> {
     return formatter.format(date);
   }
 
-  // Future<void> fetchDataFromFirestore(
-  //     String collection, bool withLoading) async {
-  //   searchController.clear();
-  //   setState(() => isLoading = withLoading);
-  //
-  //   QuerySnapshot<Map<String, dynamic>> querySnapshot =
-  //       await FirebaseFirestore.instance.collection(collection).get();
-  //
-  //   dataList = querySnapshot.docs.map((doc) {
-  //     Map<String, dynamic> data = doc.data();
-  //     data['id'] = doc.id; // Add the document ID to the data
-  //     return data;
-  //   }).toList();
-  //
-  //   // Sort dataList based on "Kodu" field
-  //   dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
-  //
-  //   filteredList = dataList;
-  //
-  //   // Cache the data
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('itemsData', jsonEncode(dataList));
-  //
-  //   setState(() => isLoading = false);
-  // }
-
   Future<void> saveChangesToFirebase() async {
     WriteBatch batch = FirebaseFirestore.instance.batch();
 
@@ -285,7 +304,7 @@ class ItemsScreenState extends State<ItemsScreen> {
         if (filteredList[i].containsKey('isNew') && filteredList[i]['isNew']) {
           // Add new item to Firebase
           DocumentReference newDoc = FirebaseFirestore.instance
-              .collection('items')
+              .collection(selectedItem)
               .doc(filteredList[i]['Kodu']);
           batch.set(newDoc, {
             'Kodu': filteredList[i]['Kodu'],
@@ -305,10 +324,10 @@ class ItemsScreenState extends State<ItemsScreen> {
         } else {
           // Update existing item in Firebase
           DocumentReference oldDocRef = FirebaseFirestore.instance
-              .collection('items')
+              .collection(selectedItem)
               .doc(filteredList[i]['documentId']);
           DocumentReference newDocRef = FirebaseFirestore.instance
-              .collection('items')
+              .collection(selectedItem)
               .doc(filteredList[i]['Kodu']);
 
           if (filteredList[i]['documentId'] != filteredList[i]['Kodu']) {
@@ -351,7 +370,7 @@ class ItemsScreenState extends State<ItemsScreen> {
 
       for (var item in itemsToDelete) {
         DocumentReference docRef = FirebaseFirestore.instance
-            .collection('items')
+            .collection(selectedItem)
             .doc(item['documentId']);
         batch.delete(docRef);
       }
@@ -408,13 +427,18 @@ class ItemsScreenState extends State<ItemsScreen> {
     });
   }
 
+  // This function filters the data based on the search query
   void filterData(String query) {
     setState(() {
-      filteredList = dataList
-          .where((item) =>
-              item['Kodu'].toLowerCase().contains(query.toLowerCase()) ||
-              item['Item Name'].toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      if (query.isEmpty) {
+        filteredList = List.from(dataList); // Show all items if no search query
+      } else {
+        filteredList = dataList
+            .where((item) =>
+                item['Kodu'].toLowerCase().contains(query.toLowerCase()) ||
+                item['Item Name'].toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
     });
   }
 
@@ -424,110 +448,324 @@ class ItemsScreenState extends State<ItemsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
           onPressed: () {
+            saveChangesToFirebase();
+            GsheetAPI(SelectedItems: selectedItem).uploadDataToGoogleSheet;
             Navigator.pop(context);
           },
         ),
         backgroundColor: const Color(0xffa4392f),
-        title: DropdownButton<String>(
-          value: selectedItem,
-          dropdownColor: const Color(0xffa4392f),
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
-          underline: Container(), // Hide underline
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-          items: <String>['Polyester', 'Naylon'].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              selectedItem = newValue!;
-              if (selectedItem == 'Polyester') {
-                collection = 'items';
-              } else {
-                collection = 'items2';
-              }
-            });
-          },
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: isSearching
+              ? TextField(
+                  key: const ValueKey('searchBar'),
+                  controller: searchController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search by Kodu or Name',
+                    border: InputBorder.none,
+                    hintStyle: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                  style: GoogleFonts.poppins(color: Colors.white),
+                )
+              : DropdownButton<String>(
+                  key: const ValueKey('dropdownMenu'),
+                  value: selectedItem,
+                  dropdownColor: const Color(0xffa4392f),
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
+                  underline: Container(), // Hide underline
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  items: <String>['Polyester', 'Naylon'].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedItem = newValue!;
+                      fetchDataForSelectedItem(); // Fetch new data based on the selected item
+                    });
+                  },
+                ),
         ),
         actions: [
+          if (!isSearching)
+            IconButton(
+              icon: const Icon(
+                Icons.search,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                setState(() {
+                  isSearching = true;
+                });
+              },
+            ),
+          if (isSearching)
+            IconButton(
+              icon: const Icon(
+                Icons.close,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                setState(() {
+                  isSearching = false;
+                  searchController.clear();
+                });
+              },
+            ),
           IconButton(
             onPressed: () {
               setState(() {
                 edit = !edit;
               });
-            },
-            icon: Icon(edit ? Icons.edit_off : Icons.edit, color: Colors.white),
-          ),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                isVisible = !isVisible;
-              });
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => const EditItemScreen()),
+              // ).then((value) {
+              //   fetchDataFromFirestore();
+              // });
             },
             icon: Icon(
-                size: 30,
-                isVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                color: Colors.white),
+              edit ? Icons.edit_off : Icons.edit,
+              color: Colors.white,
+            ),
+          ),
+          IconButton(
+            onPressed:
+                GsheetAPI(SelectedItems: selectedItem).uploadDataToFirestore,
+            icon: const Icon(
+              size: 20,
+              Icons.cloud_download_rounded,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection(collection).snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
+      body: Column(
+        children: [
+          Visibility(
+            visible: isVisible,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      children: [
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            // Expanded(
+                            //   child: GestureDetector(
+                            //     onTap: GsheetAPI(SelectedItems: selectedItem)
+                            //         .uploadDataToGoogleSheet,
+                            //     child: Row(
+                            //       children: [
+                            //         IconButton(
+                            //           onPressed:
+                            //               GsheetAPI(SelectedItems: selectedItem)
+                            //                   .uploadDataToGoogleSheet,
+                            //           icon: const Icon(
+                            //             size: 20,
+                            //             Icons.upload_file_rounded,
+                            //             color: Color(0xffa4392f),
+                            //           ),
+                            //         ),
+                            //         Text(
+                            //           'Send To Excel',
+                            //           style: GoogleFonts.poppins(
+                            //             color: const Color(0xffa4392f),
+                            //             fontSize: 14,
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ),
+                            // ),
+                            // IconButton(
+                            //   onPressed: GsheetAPI(SelectedItems: selectedItem)
+                            //       .uploadDataToFirestore,
+                            //   icon: const Icon(
+                            //     size: 25,
+                            //     Icons.cloud_download_rounded,
+                            //     color: Color(0xffa4392f),
+                            //   ),
+                            // ),
+                            // IconButton(
+                            //   onPressed: GsheetAPI(SelectedItems: selectedItem)
+                            //       .uploadDataToGoogleSheet,
+                            //   icon: const Icon(
+                            //     size: 25,
+                            //     Icons.upload,
+                            //     color: Color(0xffa4392f),
+                            //   ),
+                            // ),
+                            // IconButton(
+                            //   onPressed: saveChangesToFirebase,
+                            //   icon: const Icon(
+                            //     size: 25,
+                            //     Icons.save,
+                            //     color: Color(0xffa4392f),
+                            //   ),
+                            // ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.numbers),
+                                  const SizedBox(
+                                    width: 2,
+                                  ),
+                                  Text(
+                                    'Item Count: ${filteredList.length}',
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.black, fontSize: 14),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: showColumnSelector,
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: showColumnSelector,
+                                      icon: const Icon(
+                                        size: 20,
+                                        Icons.view_column,
+                                        color: Color(0xffa4392f),
+                                      ),
+                                    ),
+                                    Text(
+                                      'Select Columns',
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(0xffa4392f),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            );
-          }
+            ),
+          ),
+          GestureDetector(
+            onVerticalDragUpdate: (details) {
+              if (details.primaryDelta! < 0) {
+                // Dragging upwards
+                setState(() {
+                  isVisible = false;
+                });
+              } else if (details.primaryDelta! > 0) {
+                // Dragging downwards
+                setState(() {
+                  isVisible = true;
+                });
+              }
+              ;
+            },
+            child: Card(
+              color: const Color(0xffa4392f),
+              margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(isVisible ? 10.0 : 0.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
+                child: Row(
+                  children: columnOrder
+                      .where((column) => columnVisibility[column]!)
+                      .map((column) => Expanded(
+                            child: Text(
+                              column,
+                              style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            // This ensures the StreamBuilder takes up the remaining space
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection(selectedItem)
+                  .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
+                    ),
+                  );
+                }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No items found'));
-          }
+                // Update dataList with live data from Firestore
+                dataList = snapshot.data!.docs.map((doc) {
+                  Map<String, dynamic> data =
+                      doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id; // Add document ID to the data
+                  return data;
+                }).toList();
 
-          // Parse the data and update the list
-          dataList = snapshot.data!.docs.map((doc) {
-            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-            data['id'] = doc.id; // Add document ID to the data
-            return data;
-          }).toList();
+                // Ensure dataList is sorted
+                dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
 
-          // Sort the data by "Kodu" field if necessary
-          dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
-          filteredList = dataList;
+                // Only update filteredList if the search query is empty, otherwise keep the filtered items
+                if (searchController.text.isEmpty) {
+                  filteredList = List.from(dataList);
+                }
 
-          return
-              // RefreshIndicator(
-              // onRefresh: () => fetchDataFromFirestore('items', true),
-              // color: const Color(0xffa4392f),
-              // backgroundColor: Colors.grey[200],
-              // child:
-              CustomItems(
-            isVisible: isVisible,
-            searchController: searchController,
-            filterData: filterData,
-            saveChangesToFirebase: saveChangesToFirebase,
-            showColumnSelector: showColumnSelector,
-            columnOrder: columnOrder,
-            columnVisibility: columnVisibility,
-            filteredList: filteredList,
-            edit: edit,
-            deleteItem: deleteItem,
-            selectDate: _selectDate,
-            confirmDeleteItem: confirmDeleteItem,
-            // fetchDataFromFirestore: fetchDataFromFirestore,
-          );
-          // );
-        },
+                // Now return the UI with the filtered list
+                return CustomItems(
+                  SelectedItems: selectedItem,
+                  isVisible: isVisible,
+                  searchController: searchController,
+                  filterData: filterData,
+                  saveChangesToFirebase: saveChangesToFirebase,
+                  showColumnSelector: showColumnSelector,
+                  columnOrder: columnOrder,
+                  columnVisibility: columnVisibility,
+                  filteredList: filteredList,
+                  edit: edit,
+                  deleteItem: deleteItem,
+                  selectDate: _selectDate,
+                  confirmDeleteItem: confirmDeleteItem,
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: edit
           ? FloatingActionButton(

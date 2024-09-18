@@ -91,13 +91,13 @@ class ProfileScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     // Navigate to UpdateProfileScreen (Create the screen if needed)
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => UpdateProfileScreen(
-                                user: currentUser,
-                              )),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //       builder: (context) => UpdateProfileScreen(
+                    //             user: currentUser,
+                    //           )),
+                    // );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(
