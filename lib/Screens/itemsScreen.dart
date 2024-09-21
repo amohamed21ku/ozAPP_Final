@@ -55,9 +55,10 @@ class ItemsScreenState extends State<ItemsScreen> {
     'NOT': false,
     'Item No': false,
   };
-  // Save column preferences to shared preferences based on the selected item (Polyester or Naylon)
   Future<void> saveColumnPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Save column order and visibility based on the selected item
     String keyOrder = '${selectedItem}_columnOrder';
     String keyVisibility = '${selectedItem}_columnVisibility';
 
@@ -65,20 +66,25 @@ class ItemsScreenState extends State<ItemsScreen> {
     await prefs.setString(keyVisibility, jsonEncode(columnVisibility));
   }
 
-// Load column preferences from shared preferences based on the selected item (Polyester or Naylon)
   Future<void> loadColumnPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     String keyOrder = '${selectedItem}_columnOrder';
     String keyVisibility = '${selectedItem}_columnVisibility';
 
     String? savedOrder = prefs.getString(keyOrder);
     String? savedVisibility = prefs.getString(keyVisibility);
 
+    // Load preferences for the selected item
     if (savedOrder != null) {
-      columnOrder = List<String>.from(jsonDecode(savedOrder));
+      setState(() {
+        columnOrder = List<String>.from(jsonDecode(savedOrder));
+      });
     }
     if (savedVisibility != null) {
-      columnVisibility = Map<String, bool>.from(jsonDecode(savedVisibility));
+      setState(() {
+        columnVisibility = Map<String, bool>.from(jsonDecode(savedVisibility));
+      });
     }
   }
 
@@ -143,40 +149,30 @@ class ItemsScreenState extends State<ItemsScreen> {
               content: SizedBox(
                 width: double.maxFinite,
                 height: 400,
-
-                // Set a fixed height to avoid oversized drag targets
-                child: IgnorePointer(
-                  ignoring: false,
-                  child: ReorderableListView(
-                    physics:
-                        const BouncingScrollPhysics(), // Use clamping physics to prevent bouncing
-                    onReorder: (int oldIndex, int newIndex) {
-                      setState(() {
-                        if (newIndex > oldIndex) {
-                          newIndex -= 1;
-                        }
-                        final String item = newColumnOrder.removeAt(oldIndex);
-                        newColumnOrder.insert(newIndex, item);
-                      });
-                    },
-                    children: newColumnOrder.map((String key) {
-                      return CheckboxListTile(
-                        key: Key(key),
-                        title: Text(
-                          key,
-                          style: GoogleFonts.poppins(
-                              color: Colors.black, fontWeight: FontWeight.w400),
-                        ),
-                        value: columnVisibility[key],
-                        onChanged: (bool? value) {
-                          setState(() {
-                            columnVisibility[key] = value!;
-                          });
-                        },
-                        activeColor: const Color(0xffa4392f),
-                      );
-                    }).toList(),
-                  ),
+                child: ReorderableListView(
+                  onReorder: (int oldIndex, int newIndex) {
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final String item = newColumnOrder.removeAt(oldIndex);
+                      newColumnOrder.insert(newIndex, item);
+                    });
+                  },
+                  children: newColumnOrder.map((String key) {
+                    return CheckboxListTile(
+                      key: Key(key),
+                      title: Text(
+                        key,
+                        style: GoogleFonts.poppins(color: Colors.black),
+                      ),
+                      value: columnVisibility[key],
+                      onChanged: (bool? value) {
+                        setState(() {
+                          columnVisibility[key] = value!;
+                        });
+                      },
+                      activeColor: const Color(0xffa4392f),
+                    );
+                  }).toList(),
                 ),
               ),
               actions: <Widget>[
@@ -189,8 +185,7 @@ class ItemsScreenState extends State<ItemsScreen> {
                     setState(() {
                       columnOrder = newColumnOrder;
                     });
-                    saveColumnPreferences(); // Save preferences when user confirms
-
+                    saveColumnPreferences(); // Save preferences when the user confirms
                     Navigator.of(context).pop();
                   },
                 ),
@@ -200,7 +195,6 @@ class ItemsScreenState extends State<ItemsScreen> {
         );
       },
     ).then((_) {
-      // Update the state of the ItemsScreen when the dialog is dismissed
       setState(() {});
     });
   }
@@ -490,6 +484,7 @@ class ItemsScreenState extends State<ItemsScreen> {
                   onChanged: (String? newValue) {
                     setState(() {
                       selectedItem = newValue!;
+                      loadColumnPreferences(); // Load the correct preferences when switching items
                       fetchDataForSelectedItem(); // Fetch new data based on the selected item
                     });
                   },
