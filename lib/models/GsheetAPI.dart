@@ -31,7 +31,6 @@ class GsheetAPI {
         await ss.addWorksheet(SelectedItems);
   }
 
-// NEED THIS ...
   Future<List<Map<String, dynamic>>> fetchSheetData() async {
     await init();
 
@@ -64,23 +63,20 @@ class GsheetAPI {
       item.remove('C/F');
       item.remove('Tarih');
 
-      List<dynamic> previous_prices = [
-        row.length > 10 ? row[10] : '',
-        row.length > 11 ? row[11] : '',
-        row.length > 12 ? row[12] : '',
-        row.length > 13 ? row[13] : '',
-        row.length > 14 ? row[14] : '',
-        row.length > 15 ? row[15] : '',
-        row.length > 16 ? row[16] : '',
-        row.length > 17 ? row[17] : '',
-        row.length > 18 ? row[18] : '',
-        row.length > 19 ? row[19] : '',
-        row.length > 20 ? row[20] : '',
-        row.length > 21 ? row[21] : '',
-      ];
+      // Constructing Previous_Prices as an array of maps
+      List<Map<String, dynamic>> previousPrices = [];
+      for (int j = 11; j < row.length; j += 3) {
+        if (row[j].isNotEmpty || row.length > j + 2) {
+          Map<String, dynamic> priceMap = {
+            'price': row.length > j ? row[j] : '',
+            'date': row.length > j + 1 ? row[j + 2] : '',
+            'C/F': row.length > j + 2 ? row[j + 1] : ''
+          };
+          previousPrices.add(priceMap);
+        }
+      }
 
-      item['Previous_Prices'] = previous_prices;
-
+      item['Previous_Prices'] = previousPrices;
       items.add(item);
     }
 
@@ -93,10 +89,20 @@ class GsheetAPI {
     final sheetData = await fetchSheetData();
     final firestoreData = await fetchFirestoreData();
 
+    // Helper function to convert serial number to Date
+    DateTime convertSerialToDate(double serial) {
+      return DateTime(1899, 12, 30).add(Duration(days: serial.toInt()));
+    }
+
     final sheetDataMap = {
       for (var item in sheetData)
         if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
-          item['Kodu']: item
+          item['Kodu']: {
+            ...item,
+            // Check if there's a date and if it is a number, convert it to proper date format
+            if (item['Date'] != null && item['Date'] is double)
+              'Date': convertSerialToDate(item['Date']).toIso8601String(),
+          }
     };
 
     // Start a batch for Firestore writes
@@ -134,35 +140,33 @@ class GsheetAPI {
   }
 
   Future<void> uploadDataToGoogleSheet() async {
-    final firestore = FirebaseFirestore.instance;
-    final querySnapshot = await firestore.collection(SelectedItems).get();
+    if (SelectedItems == 'Polyester') {
+      uploadPolyesterDataToGoogleSheet();
+    } else {
+      uploadNaylonDataToGoogleSheet();
+    }
+  }
 
-    List<List<dynamic>> sheetData = [
-      [
-        'Kodu',
-        'Kalite',
-        'Eni',
-        'Gramaj',
-        'NOT',
-        'Supplier',
-        'S/Item No.',
-        'S/Item Name',
-        'Price',
-        'Date',
-        'USD',
-        'C/F',
-        'Tarih',
-        'USD',
-        'C/F',
-        'Tarih',
-        'USD',
-        'C/F',
-        'Tarih',
-        'USD',
-        'C/F',
-        'Tarih'
-      ]
+  Future<void> uploadPolyesterDataToGoogleSheet() async {
+    final firestore = FirebaseFirestore.instance;
+    final querySnapshot = await firestore.collection('Polyester').get();
+
+    // Define headers for Polyester
+    List<String> headers = [
+      'Kodu',
+      'Kalite',
+      'Eni',
+      'Gramaj',
+      'NOT', // First 'NOT' for Polyester
+      'Supplier',
+      'S/Item No.',
+      'S/Item Name',
+      'Price',
+      'Date'
     ];
+
+    // List to store all data rows (starting with headers)
+    List<List<dynamic>> sheetData = [headers]; // Start with static headers
 
     for (var doc in querySnapshot.docs) {
       final data = doc.data();
@@ -171,28 +175,123 @@ class GsheetAPI {
         data['Kalite'],
         data['Eni'],
         data['Gramaj'],
-        data['NOT'],
+        data['NOT'], // Use 'NOT' for Polyester
         data['Supplier'],
         data['Item No'],
         data['Item Name'],
         data['Price'],
-        data['Date'],
+        data['Date']
       ];
 
+      // Fetch Previous_Prices array
       List previousPrices = data['Previous_Prices'] ?? [];
-      for (int i = 0; i < previousPrices.length; i += 3) {
-        row.add(previousPrices[i] ?? '');
-        row.add(previousPrices[i + 1] ?? '');
-        row.add(previousPrices[i + 2] ?? '');
+      int previousPricesCount = previousPrices.length;
+
+      // Add empty columns to align Previous_Prices headers to start from column 11
+      while (headers.length < 11) {
+        headers.add(''); // Add empty headers until reaching column 11
       }
 
-      sheetData.add(row);
+      // Add headers for Previous_Prices if any exist
+      if (previousPricesCount > 0) {
+        for (int i = 0; i < previousPricesCount; i++) {
+          headers.add('price'); // Add 'price' header for each map
+          headers.add('C/F'); // Add 'C/F' header for each map
+          headers.add('date'); // Add 'date' header for each map
+        }
+      }
+
+      // Add empty columns if necessary to align Previous_Prices values to start from column 11
+      while (row.length < 11) {
+        row.add(''); // Add empty cells until reaching column 11
+      }
+
+      // Add values for each map in Previous_Prices
+      for (int i = 0; i < previousPricesCount; i++) {
+        row.add(previousPrices[i]['price'] ?? ''); // Price value
+        row.add(previousPrices[i]['C/F'] ?? ''); // C/F value
+        row.add(previousPrices[i]['date'] ?? ''); // Date value
+      }
+
+      sheetData.add(row); // Add the row to the sheet data
     }
 
     await init();
 
     await worksheet!.clear();
     await worksheet!.values.insertRows(1, sheetData);
+  }
+
+  Future<void> uploadNaylonDataToGoogleSheet() async {
+    final firestore = FirebaseFirestore.instance;
+    final querySnapshot = await firestore.collection('Naylon').get();
+
+    // Define headers for Naylon
+    List<String> headers = [
+      'Kodu',
+      'Kalite',
+      'Eni',
+      'Gramaj',
+      'Composition', // Composition for Naylon
+      'NOT', // NOT for Naylon
+      'Supplier',
+      'S/Item No.',
+      'S/Item Name',
+      'Price',
+      'Date'
+    ];
+
+    // List to store all data rows (starting with headers)
+    List<List<dynamic>> sheetData = [headers]; // Start with static headers
+
+    for (var doc in querySnapshot.docs) {
+      final data = doc.data();
+      List<dynamic> row = [
+        data['Kodu'],
+        data['Kalite'],
+        data['Eni'],
+        data['Gramaj'],
+        data['Composition'], // Composition for Naylon
+        data['NOT'], // Use 'NOT' for Naylon
+        data['Supplier'],
+        data['Item No'],
+        data['Item Name'],
+        data['Price'],
+        data['Date']
+      ];
+
+      // Fetch Previous_Prices array
+      List previousPrices = data['Previous_Prices'] ?? [];
+      int previousPricesCount = previousPrices.length;
+
+      // Add empty columns to align Previous_Prices headers to start from column 11
+      while (headers.length < 11) {
+        headers.add(''); // Add empty headers until reaching column 11
+      }
+
+      // Add headers for Previous_Prices if any exist
+      if (previousPricesCount > 0) {
+        for (int i = 0; i < previousPricesCount; i++) {
+          headers.add('price'); // Add 'price' header for each map
+          headers.add('C/F'); // Add 'C/F' header for each map
+          headers.add('date'); // Add 'date' header for each map
+        }
+      }
+
+      // Add empty columns if necessary to align Previous_Prices values to start from column 11
+      while (row.length < 11) {
+        row.add(''); // Add empty cells until reaching column 11
+      }
+
+      // Add values for each map in Previous_Prices
+      for (int i = 0; i < previousPricesCount; i++) {
+        row.add(previousPrices[i]['price'] ?? ''); // Price value
+        row.add(previousPrices[i]['C/F'] ?? ''); // C/F value
+        row.add(previousPrices[i]['date'] ?? ''); // Date value
+      }
+
+      sheetData.add(row); // Add the row to the sheet data
+    }
 
     await init();
 
