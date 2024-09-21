@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/components.dart';
 import '../models/GsheetAPI.dart';
+//Because the use of the streambuilder, when you scroll up to hide you set state of isVisible to false so it rebuilds the screen everytime, maybe refactoring will solve
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -453,8 +454,8 @@ class ItemsScreenState extends State<ItemsScreen> {
             color: Colors.white,
           ),
           onPressed: () {
-            saveChangesToFirebase();
-            GsheetAPI(SelectedItems: selectedItem).uploadDataToGoogleSheet;
+            // saveChangesToFirebase();
+            // GsheetAPI(SelectedItems: selectedItem).uploadDataToGoogleSheet;
             Navigator.pop(context);
           },
         ),
@@ -560,64 +561,80 @@ class ItemsScreenState extends State<ItemsScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            // Expanded(
-                            //   child: GestureDetector(
-                            //     onTap: GsheetAPI(SelectedItems: selectedItem)
-                            //         .uploadDataToGoogleSheet,
-                            //     child: Row(
-                            //       children: [
-                            //         IconButton(
-                            //           onPressed:
-                            //               GsheetAPI(SelectedItems: selectedItem)
-                            //                   .uploadDataToGoogleSheet,
-                            //           icon: const Icon(
-                            //             size: 20,
-                            //             Icons.upload_file_rounded,
-                            //             color: Color(0xffa4392f),
-                            //           ),
-                            //         ),
-                            //         Text(
-                            //           'Send To Excel',
-                            //           style: GoogleFonts.poppins(
-                            //             color: const Color(0xffa4392f),
-                            //             fontSize: 14,
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   ),
-                            // ),
-                            // IconButton(
-                            //   onPressed: GsheetAPI(SelectedItems: selectedItem)
-                            //       .uploadDataToFirestore,
-                            //   icon: const Icon(
-                            //     size: 25,
-                            //     Icons.cloud_download_rounded,
-                            //     color: Color(0xffa4392f),
-                            //   ),
-                            // ),
-                            // IconButton(
-                            //   onPressed: GsheetAPI(SelectedItems: selectedItem)
-                            //       .uploadDataToGoogleSheet,
-                            //   icon: const Icon(
-                            //     size: 25,
-                            //     Icons.upload,
-                            //     color: Color(0xffa4392f),
-                            //   ),
-                            // ),
-                            // IconButton(
-                            //   onPressed: saveChangesToFirebase,
-                            //   icon: const Icon(
-                            //     size: 25,
-                            //     Icons.save,
-                            //     color: Color(0xffa4392f),
-                            //   ),
-                            // ),
-                          ],
-                        ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: GsheetAPI(SelectedItems: selectedItem)
+                                      .uploadDataToGoogleSheet,
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: GsheetAPI(
+                                                SelectedItems: selectedItem)
+                                            .uploadDataToGoogleSheet,
+                                        icon: const Icon(
+                                          size: 20,
+                                          Icons.upload_file_rounded,
+                                          color: Color(0xffa4392f),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Send To Excel',
+                                        style: GoogleFonts.poppins(
+                                          color: const Color(0xffa4392f),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // IconButton(
+                              //   onPressed: GsheetAPI(SelectedItems: selectedItem)
+                              //       .uploadDataToFirestore,
+                              //   icon: const Icon(
+                              //     size: 25,
+                              //     Icons.cloud_download_rounded,
+                              //     color: Color(0xffa4392f),
+                              //   ),
+                              // ),
+                              // IconButton(
+                              //   onPressed: GsheetAPI(SelectedItems: selectedItem)
+                              //       .uploadDataToGoogleSheet,
+                              //   icon: const Icon(
+                              //     size: 25,
+                              //     Icons.upload,
+                              //     color: Color(0xffa4392f),
+                              //   ),
+                              // ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: GsheetAPI(SelectedItems: selectedItem)
+                                      .uploadDataToGoogleSheet,
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: saveChangesToFirebase,
+                                        icon: const Icon(
+                                          size: 20,
+                                          Icons.save,
+                                          color: Color(0xffa4392f),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Save Changes',
+                                        style: GoogleFonts.poppins(
+                                          color: const Color(0xffa4392f),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ]),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
