@@ -4,7 +4,7 @@ class Customer {
   String initial;
   String cid;
   Map<String, dynamic> items;
-  Map<String, dynamic> goods;
+  List<dynamic> goods;
 
   Customer({
     required this.name,

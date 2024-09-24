@@ -62,7 +62,7 @@ class _BalanceSheetState extends State<BalanceSheet> {
             company: company,
             initial: initial,
             items: items,
-            goods: {},
+            goods: [],
             cid: cid));
       }
     } catch (error) {
@@ -140,7 +140,7 @@ class _BalanceSheetState extends State<BalanceSheet> {
                             onpress: () {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (context) => ordersSheet(
-                                  customerName: customer.name,
+                                  customer: customer,
                                 ),
                               ));
                             },

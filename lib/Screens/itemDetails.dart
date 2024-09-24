@@ -29,13 +29,13 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   TextEditingController priceController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController NOTController = TextEditingController();
+  TextEditingController CompositionController = TextEditingController();
 
   int _selectedPriceIndex = 0; // Default to the first entry
 
   List<dynamic> previousPrices = [];
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final TextEditingController _priceController = TextEditingController();
-  String _selectedDate = '';
 
   void _confirmDelete(int index) async {
     final confirm = await showDialog<bool>(
@@ -96,7 +96,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     eniController.text = widget.item['Eni'] ?? '';
     gramajController.text = widget.item['Gramaj'] ?? '';
     supplierController.text = widget.item['Supplier'] ?? '';
-    itemNoController.text = widget.item['Item No.'] ?? '';
+    itemNoController.text = widget.item['Item No'] ?? '';
     nameController.text = widget.item['Item Name'] ?? '';
     priceController.text = widget.item['Price'] ?? '';
     dateController.text = widget.item['Date'] ?? '';
@@ -585,15 +585,28 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           backgroundColor: const Color(0xffa4392f),
-          // actions: [
-          //   IconButton(
-          //     onPressed: saveChangesToFirebase,
-          //     icon: const Icon(
-          //       Icons.save,
-          //       color: Colors.white,
-          //     ),
-          //   ),
-          // ],
+          actions: [
+            IconButton(
+              onPressed: () async {
+                // If it's an existing item, delete directly from Firebase
+
+                try {
+                  await FirebaseFirestore.instance
+                      .collection(widget.SelectedItems)
+                      .doc(widget.docId)
+                      .delete();
+                } catch (e) {
+                  print('Error deleting item: $e');
+                  // Handle error if deletion fails
+                }
+                Navigator.pop(context);
+              },
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),

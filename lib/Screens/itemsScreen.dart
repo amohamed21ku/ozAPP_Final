@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/components.dart';
 import '../models/GsheetAPI.dart';
-//Because the use of the streambuilder, when you scroll up to hide you set state of isVisible to false so it rebuilds the screen everytime, maybe refactoring will solve
+import 'TheItems.dart';
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -55,6 +55,7 @@ class ItemsScreenState extends State<ItemsScreen> {
     'NOT': false,
     'Item No': false,
   };
+
   Future<void> saveColumnPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -403,25 +404,6 @@ class ItemsScreenState extends State<ItemsScreen> {
     }
   }
 
-  void addNewItem() {
-    setState(() {
-      filteredList.insert(0, {
-        'Kodu': '',
-        'Item Name': '',
-        'Eni': '',
-        'Gramaj': '',
-        'Price': '',
-        'Date': '',
-        'Supplier': '',
-        'Kalite': '',
-        'NOT': '',
-        'Item No': '',
-        'Previous_Prices': [],
-        'isNew': true, // Flag to identify new items
-      });
-    });
-  }
-
   // This function filters the data based on the search query
   void filterData(String query) {
     setState(() {
@@ -521,12 +503,6 @@ class ItemsScreenState extends State<ItemsScreen> {
               setState(() {
                 edit = !edit;
               });
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const EditItemScreen()),
-              // ).then((value) {
-              //   fetchDataFromFirestore();
-              // });
             },
             icon: Icon(
               edit ? Icons.edit_off : Icons.edit,
@@ -546,246 +522,40 @@ class ItemsScreenState extends State<ItemsScreen> {
       ),
       body: Column(
         children: [
-          Visibility(
-            visible: isVisible,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      children: [
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: GsheetAPI(SelectedItems: selectedItem)
-                                      .uploadDataToGoogleSheet,
-                                  child: Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: GsheetAPI(
-                                                SelectedItems: selectedItem)
-                                            .uploadDataToGoogleSheet,
-                                        icon: const Icon(
-                                          size: 20,
-                                          Icons.upload_file_rounded,
-                                          color: Color(0xffa4392f),
-                                        ),
-                                      ),
-                                      Text(
-                                        'Send To Excel',
-                                        style: GoogleFonts.poppins(
-                                          color: const Color(0xffa4392f),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              // IconButton(
-                              //   onPressed: GsheetAPI(SelectedItems: selectedItem)
-                              //       .uploadDataToFirestore,
-                              //   icon: const Icon(
-                              //     size: 25,
-                              //     Icons.cloud_download_rounded,
-                              //     color: Color(0xffa4392f),
-                              //   ),
-                              // ),
-                              // IconButton(
-                              //   onPressed: GsheetAPI(SelectedItems: selectedItem)
-                              //       .uploadDataToGoogleSheet,
-                              //   icon: const Icon(
-                              //     size: 25,
-                              //     Icons.upload,
-                              //     color: Color(0xffa4392f),
-                              //   ),
-                              // ),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: GsheetAPI(SelectedItems: selectedItem)
-                                      .uploadDataToGoogleSheet,
-                                  child: Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: saveChangesToFirebase,
-                                        icon: const Icon(
-                                          size: 20,
-                                          Icons.save,
-                                          color: Color(0xffa4392f),
-                                        ),
-                                      ),
-                                      Text(
-                                        'Save Changes',
-                                        style: GoogleFonts.poppins(
-                                          color: const Color(0xffa4392f),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ]),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.numbers),
-                                  const SizedBox(
-                                    width: 2,
-                                  ),
-                                  Text(
-                                    'Item Count: ${filteredList.length}',
-                                    style: GoogleFonts.poppins(
-                                        color: Colors.black, fontSize: 14),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: showColumnSelector,
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                      onPressed: showColumnSelector,
-                                      icon: const Icon(
-                                        size: 20,
-                                        Icons.view_column,
-                                        color: Color(0xffa4392f),
-                                      ),
-                                    ),
-                                    Text(
-                                      'Select Columns',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(0xffa4392f),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          Theitems(
+            isSearching: isSearching,
+            isLoading: isLoading,
+            isVisible: isVisible,
+            edit: edit,
+            selectedItem: selectedItem,
+            dataList: dataList,
+            filteredList: filteredList,
+            itemsToDelete: itemsToDelete,
+            columnOrder: columnOrder,
+            columnVisibility: columnVisibility,
+            loadColumnPreferences: loadColumnPreferences,
+            fetchDataForSelectedItem: fetchDataForSelectedItem,
+            saveChangesToFirebase: saveChangesToFirebase,
+            showColumnSelector: showColumnSelector,
           ),
-          GestureDetector(
-            onVerticalDragUpdate: (details) {
-              if (details.primaryDelta! < 0) {
-                // Dragging upwards
-                setState(() {
-                  isVisible = false;
-                });
-              } else if (details.primaryDelta! > 0) {
-                // Dragging downwards
-                setState(() {
-                  isVisible = true;
-                });
-              }
-              ;
-            },
-            child: Card(
-              color: const Color(0xffa4392f),
-              margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(isVisible ? 10.0 : 0.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
-                child: Row(
-                  children: columnOrder
-                      .where((column) => columnVisibility[column]!)
-                      .map((column) => Expanded(
-                            child: Text(
-                              column,
-                              style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 12),
-                            ),
-                          ))
-                      .toList(),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            // This ensures the StreamBuilder takes up the remaining space
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection(selectedItem)
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
-                // Update dataList with live data from Firestore
-                dataList = snapshot.data!.docs.map((doc) {
-                  Map<String, dynamic> data =
-                      doc.data() as Map<String, dynamic>;
-                  data['id'] = doc.id; // Add document ID to the data
-                  return data;
-                }).toList();
-
-                // Ensure dataList is sorted
-                dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
-
-                // Only update filteredList if the search query is empty, otherwise keep the filtered items
-                if (searchController.text.isEmpty) {
-                  filteredList = List.from(dataList);
-                }
-
-                // Now return the UI with the filtered list
-                return CustomItems(
-                  SelectedItems: selectedItem,
-                  isVisible: isVisible,
-                  searchController: searchController,
-                  filterData: filterData,
-                  saveChangesToFirebase: saveChangesToFirebase,
-                  showColumnSelector: showColumnSelector,
-                  columnOrder: columnOrder,
-                  columnVisibility: columnVisibility,
-                  filteredList: filteredList,
-                  edit: edit,
-                  deleteItem: deleteItem,
-                  selectDate: _selectDate,
-                  confirmDeleteItem: confirmDeleteItem,
-                );
-              },
-            ),
-          ),
+          CustomItems(
+            SelectedItems: selectedItem,
+            isVisible: isVisible,
+            searchController: searchController,
+            filterData: filterData,
+            saveChangesToFirebase: saveChangesToFirebase,
+            showColumnSelector: showColumnSelector,
+            columnOrder: columnOrder,
+            columnVisibility: columnVisibility,
+            filteredList: filteredList,
+            edit: edit,
+            deleteItem: deleteItem,
+            selectDate: _selectDate,
+            confirmDeleteItem: confirmDeleteItem,
+            dataList: dataList,
+          )
         ],
       ),
-      floatingActionButton: edit
-          ? FloatingActionButton(
-              onPressed: addNewItem,
-              backgroundColor: const Color(0xffa4392f),
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
     );
   }
 }

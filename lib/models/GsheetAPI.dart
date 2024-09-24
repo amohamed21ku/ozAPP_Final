@@ -31,6 +31,16 @@ class GsheetAPI {
         await ss.addWorksheet(SelectedItems);
   }
 
+  // Future<void> print_SHEET() async {
+  //   final sheetData = await fetchSheetData();
+  //   print(sheetData);
+  // }
+  //
+  // Future<void> print_SHEET2() async {
+  //   final sheetData = await fetchFirestoreData();
+  //   print(sheetData);
+  // }
+
   Future<List<Map<String, dynamic>>> fetchSheetData() async {
     await init();
 
@@ -59,9 +69,9 @@ class GsheetAPI {
         }
         item[headers[j]] = row.length > j ? row[j] : '';
       }
-      item.remove('USD');
+      item.remove('price');
       item.remove('C/F');
-      item.remove('Tarih');
+      item.remove('date');
 
       // Constructing Previous_Prices as an array of maps
       List<Map<String, dynamic>> previousPrices = [];
@@ -119,7 +129,12 @@ class GsheetAPI {
     // Add or update documents in Firestore based on the sheet data
     sheetDataMap.forEach((docId, item) {
       final docRef = firestore.collection(SelectedItems).doc(docId);
-      batch.set(docRef, item);
+      // Filter out any fields that are null or empty
+      final cleanedItem = Map<String, dynamic>.from(item)
+        ..removeWhere(
+            (key, value) => key == null || key.isEmpty || value == null);
+
+      batch.set(docRef, cleanedItem);
     });
 
     // Commit the batch
@@ -162,8 +177,12 @@ class GsheetAPI {
       'S/Item No.',
       'S/Item Name',
       'Price',
-      'Date'
+      'Date',
+      ''
     ];
+
+    // Keep track of the maximum number of previous prices encountered
+    int maxPreviousPricesCount = 0;
 
     // List to store all data rows (starting with headers)
     List<List<dynamic>> sheetData = [headers]; // Start with static headers
@@ -187,18 +206,9 @@ class GsheetAPI {
       List previousPrices = data['Previous_Prices'] ?? [];
       int previousPricesCount = previousPrices.length;
 
-      // Add empty columns to align Previous_Prices headers to start from column 11
-      while (headers.length < 11) {
-        headers.add(''); // Add empty headers until reaching column 11
-      }
-
-      // Add headers for Previous_Prices if any exist
-      if (previousPricesCount > 0) {
-        for (int i = 0; i < previousPricesCount; i++) {
-          headers.add('price'); // Add 'price' header for each map
-          headers.add('C/F'); // Add 'C/F' header for each map
-          headers.add('date'); // Add 'date' header for each map
-        }
+      // Update the max previous prices count if the current one is higher
+      if (previousPricesCount > maxPreviousPricesCount) {
+        maxPreviousPricesCount = previousPricesCount;
       }
 
       // Add empty columns if necessary to align Previous_Prices values to start from column 11
@@ -214,6 +224,13 @@ class GsheetAPI {
       }
 
       sheetData.add(row); // Add the row to the sheet data
+    }
+
+    // Add headers for Previous_Prices based on max count encountered
+    for (int i = 0; i < maxPreviousPricesCount; i++) {
+      headers.add('price'); // Add 'price' header for each map
+      headers.add('C/F'); // Add 'C/F' header for each map
+      headers.add('date'); // Add 'date' header for each map
     }
 
     await init();
@@ -241,6 +258,9 @@ class GsheetAPI {
       'Date'
     ];
 
+    // Keep track of the maximum number of previous prices encountered
+    int maxPreviousPricesCount = 0;
+
     // List to store all data rows (starting with headers)
     List<List<dynamic>> sheetData = [headers]; // Start with static headers
 
@@ -264,18 +284,9 @@ class GsheetAPI {
       List previousPrices = data['Previous_Prices'] ?? [];
       int previousPricesCount = previousPrices.length;
 
-      // Add empty columns to align Previous_Prices headers to start from column 11
-      while (headers.length < 11) {
-        headers.add(''); // Add empty headers until reaching column 11
-      }
-
-      // Add headers for Previous_Prices if any exist
-      if (previousPricesCount > 0) {
-        for (int i = 0; i < previousPricesCount; i++) {
-          headers.add('price'); // Add 'price' header for each map
-          headers.add('C/F'); // Add 'C/F' header for each map
-          headers.add('date'); // Add 'date' header for each map
-        }
+      // Update the max previous prices count if the current one is higher
+      if (previousPricesCount > maxPreviousPricesCount) {
+        maxPreviousPricesCount = previousPricesCount;
       }
 
       // Add empty columns if necessary to align Previous_Prices values to start from column 11
@@ -291,6 +302,13 @@ class GsheetAPI {
       }
 
       sheetData.add(row); // Add the row to the sheet data
+    }
+
+    // Add headers for Previous_Prices based on max count encountered
+    for (int i = 0; i < maxPreviousPricesCount; i++) {
+      headers.add('price'); // Add 'price' header for each map
+      headers.add('C/F'); // Add 'C/F' header for each map
+      headers.add('date'); // Add 'date' header for each map
     }
 
     await init();

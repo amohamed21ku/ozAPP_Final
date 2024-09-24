@@ -30,6 +30,106 @@ class _CustomerScreenState extends State<CustomerScreen> {
     });
   }
 
+  Future<void> _editCustomer(BuildContext context, Customer customer) async {
+    String updatedName = customer.name;
+    String updatedCompany = customer.company;
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Edit Customer Info',
+            style: GoogleFonts.poppins(
+              color: const Color(0xffa4392f), // Title color
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    labelStyle:
+                        TextStyle(color: Color(0xffa4392f)), // Label color
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Color(
+                              0xffa4392f)), // Underline color when focused
+                    ),
+                  ),
+                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  controller: TextEditingController(text: customer.name),
+                  onChanged: (value) => updatedName = value,
+                ),
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Company',
+                    labelStyle:
+                        TextStyle(color: Color(0xffa4392f)), // Label color
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Color(
+                              0xffa4392f)), // Underline color when focused
+                    ),
+                  ),
+                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  controller: TextEditingController(text: customer.company),
+                  onChanged: (value) => updatedCompany = value,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog without saving
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // Button text color
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    // Update customer info in Firestore
+                    await FirebaseFirestore.instance
+                        .collection('customers')
+                        .doc(customer.cid)
+                        .update({
+                      'name': updatedName,
+                      'company': updatedCompany,
+                    });
+
+                    Navigator.of(context).pop(); // Close dialog after saving
+                    await fetchCustomers(); // Refresh customer list
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        const Color(0xffa4392f), // Button background color
+                  ),
+                  child: Text(
+                    'Save',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white, // Button text color
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Filtering function
   void filterData(String query) {
     setState(() {
@@ -72,7 +172,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
         );
       }).toList();
 
-      // Initialize filteredCustomers with all customers
+      // Initialize filteredCustomers with all customers_
       filteredCustomers = customers;
 
       // Cache the customer data
@@ -95,7 +195,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
   Future<void> _addCustomer(BuildContext context) async {
     String name = '';
     String company = '';
-    Map goods = {};
+    List goods = [];
     Map items = {};
 
     return showDialog(
@@ -209,6 +309,17 @@ class _CustomerScreenState extends State<CustomerScreen> {
           },
         ),
         backgroundColor: const Color(0xffa4392f),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              _addCustomer(context);
+            },
+          ),
+        ],
         title: Text(
           'Customers List',
           style: GoogleFonts.poppins(
@@ -218,11 +329,11 @@ class _CustomerScreenState extends State<CustomerScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xffa4392f),
-        onPressed: () => _addCustomer(context),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: const Color(0xffa4392f),
+      //   onPressed: () => _addCustomer(context),
+      //   child: const Icon(Icons.add, color: Colors.white),
+      // ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
         child: showSpinner
@@ -251,18 +362,24 @@ class _CustomerScreenState extends State<CustomerScreen> {
                         itemCount: filteredCustomers.length,
                         itemBuilder: (context, index) {
                           final customer = filteredCustomers[index];
-                          return InfoCard(
-                            name: customer.name,
-                            company: customer.company,
-                            onpress: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) =>
-                                    CustomerItemsScreen(customer: customer),
-                              ));
+                          return GestureDetector(
+                            onLongPress: () {
+                              // edit the customer info
+                              _editCustomer(context, customer);
                             },
-                            initial: customer.initial,
-                            customerId: customer.cid,
-                            isUser: false,
+                            child: InfoCard(
+                              name: customer.name,
+                              company: customer.company,
+                              onpress: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) =>
+                                      CustomerItemsScreen(customer: customer),
+                                ));
+                              },
+                              initial: customer.initial,
+                              customerId: customer.cid,
+                              isUser: false,
+                            ),
                           );
                         },
                         separatorBuilder: (BuildContext context, int index) =>

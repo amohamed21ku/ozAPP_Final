@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -417,11 +418,11 @@ class CustomSearchBar extends StatelessWidget {
   final String hinttext;
 
   const CustomSearchBar({
-    Key? key,
+    super.key,
     required this.searchController,
     required this.onChanged,
     required this.hinttext,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -493,15 +494,16 @@ class CustomItems extends StatelessWidget {
   final VoidCallback showColumnSelector;
   final List<String> columnOrder;
   final Map<String, bool> columnVisibility;
-  final List<Map<String, dynamic>> filteredList;
+  List<Map<String, dynamic>> filteredList;
   final bool edit;
   final Function(int) deleteItem;
   final Future<void> Function(BuildContext, int) selectDate;
   final Future<bool?> Function(int) confirmDeleteItem;
-  // final Function(bool) fetchDataFromFirestore;
+  // final Function(String, bool) fetchDataFromFirestore;
+  List<Map<String, dynamic>> dataList;
 
-  const CustomItems({
-    Key? key,
+  CustomItems({
+    super.key,
     required this.isVisible,
     required this.searchController,
     required this.filterData,
@@ -515,53 +517,242 @@ class CustomItems extends StatelessWidget {
     required this.selectDate,
     required this.confirmDeleteItem,
     required this.SelectedItems,
+    required this.dataList,
     // required this.fetchDataFromFirestore,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: filteredList.length,
-            itemBuilder: (context, index) {
-              return edit
-                  ? EditCard(
-                      index: index,
-                      item: filteredList[index],
-                      onDelete: (int index) {
-                        deleteItem(index);
-                      },
-                      selectDate: selectDate,
-                      confirmDeleteItem: confirmDeleteItem,
-                      columnOrder: columnOrder,
-                      columnVisibility: columnVisibility,
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ItemDetailsScreen(
-                                    SelectedItems: SelectedItems,
-                                    item: filteredList[index],
-                                    docId: filteredList[index]['id'],
-                                  )),
-                        );
-                      },
-                      child: ItemCard(
-                        Item: filteredList[index],
-                        columnOrder: columnOrder,
-                        columnVisibility: columnVisibility,
-                        index: index,
+    return Expanded(
+      // This ensures the StreamBuilder takes up the remaining space
+      child: StreamBuilder<QuerySnapshot>(
+        stream:
+            FirebaseFirestore.instance.collection(SelectedItems).snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xffa4392f)),
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          // Update dataList with live data from Firestore
+          dataList = snapshot.data!.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            data['id'] = doc.id; // Add document ID to the data
+            return data;
+          }).toList();
+
+          // Ensure dataList is sorted
+          dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
+
+          // Only update filteredList if the search query is empty, otherwise keep the filtered items
+          if (searchController.text.isEmpty) {
+            filteredList = List.from(dataList);
+          }
+
+          // Now return the UI with the filtered list
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: filteredList.length,
+                  itemBuilder: (context, index) {
+                    return edit
+                        ? EditCard(
+                            index: index,
+                            item: filteredList[index],
+                            onDelete: (int index) {
+                              deleteItem(index);
+                            },
+                            selectDate: selectDate,
+                            confirmDeleteItem: confirmDeleteItem,
+                            columnOrder: columnOrder,
+                            columnVisibility: columnVisibility,
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ItemDetailsScreen(
+                                          SelectedItems: SelectedItems,
+                                          item: filteredList[index],
+                                          docId: filteredList[index]['id'],
+                                        )),
+                              );
+                              //     .then((_) {
+                              //   fetchDataFromFirestore(SelectedItems, true);
+                              // });
+                            },
+                            child: ItemCard(
+                              Item: filteredList[index],
+                              columnOrder: columnOrder,
+                              columnVisibility: columnVisibility,
+                              index: index,
+                            ));
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ================================================================
+class VisibleActions extends StatefulWidget {
+  final bool isVisible;
+  final String selectedItem;
+  final List<dynamic> filteredList;
+  final VoidCallback saveChangesToFirebase;
+  final VoidCallback showColumnSelector;
+
+  const VisibleActions({
+    super.key,
+    required this.isVisible,
+    required this.selectedItem,
+    required this.filteredList,
+    required this.saveChangesToFirebase,
+    required this.showColumnSelector,
+  });
+
+  @override
+  _VisibleActionsState createState() => _VisibleActionsState();
+}
+
+class _VisibleActionsState extends State<VisibleActions> {
+  @override
+  Widget build(BuildContext context) {
+    // Return the widget only if isVisible is true
+    if (!widget.isVisible) {
+      return const SizedBox.shrink(); // Return an empty widget when not visible
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: GsheetAPI(SelectedItems: widget.selectedItem)
+                            .uploadDataToGoogleSheet,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed:
+                                  GsheetAPI(SelectedItems: widget.selectedItem)
+                                      .uploadDataToGoogleSheet,
+                              icon: const Icon(
+                                size: 20,
+                                Icons.upload_file_rounded,
+                                color: Color(0xffa4392f),
+                              ),
+                            ),
+                            Text(
+                              'Send To Excel',
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xffa4392f),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-            },
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: GsheetAPI(SelectedItems: widget.selectedItem)
+                            .uploadDataToFirestore,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed:
+                                  GsheetAPI(SelectedItems: widget.selectedItem)
+                                      .uploadDataToFirestore,
+                              icon: const Icon(
+                                size: 20,
+                                Icons.cloud_download_rounded,
+                                color: Color(0xffa4392f),
+                              ),
+                            ),
+                            Text(
+                              'Get From Excel',
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xffa4392f),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.numbers),
+                          const SizedBox(
+                            width: 2,
+                          ),
+                          Text(
+                            'Item Count: ${widget.filteredList.length}',
+                            style: GoogleFonts.poppins(
+                                color: Colors.black, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: widget.showColumnSelector,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: widget.showColumnSelector,
+                              icon: const Icon(
+                                size: 20,
+                                Icons.view_column,
+                                color: Color(0xffa4392f),
+                              ),
+                            ),
+                            Text(
+                              'Select Columns',
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xffa4392f),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

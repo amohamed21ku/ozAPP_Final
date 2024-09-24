@@ -63,16 +63,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
       _refreshEvents();
-
-      if (index == 0) {
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark); // 1
-      }
     });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 700),
-      curve: Curves.ease,
-    );
+    if (index == 0)
+      _pageController.jumpToPage(0);
+    else
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.ease,
+      );
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -649,7 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.task_alt),
-              label: 'To-DO',
+              label: 'To-Do',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.today),

@@ -289,9 +289,9 @@ class _CalendarPageState extends State<CalendarPage> {
   // Building the UI
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light.copyWith(
-      statusBarColor: Colors.transparent, // optional
-    ));
+    // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light.copyWith(
+    //   statusBarColor: Colors.transparent, // optional
+    // ));
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
