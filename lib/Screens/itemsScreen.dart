@@ -29,6 +29,173 @@ class ItemsScreenState extends State<ItemsScreen> {
 
   TextEditingController searchController = TextEditingController();
 
+  void _showAddItemBottomSheet(BuildContext context, String selectedItem) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      sheetAnimationStyle: AnimationStyle(
+          duration: const Duration(
+              milliseconds:
+                  700)), // Allows the bottom sheet to resize when the keyboard opens
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context)
+                .viewInsets
+                .bottom, // Adjust bottom padding when keyboard opens
+          ),
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.75,
+            minChildSize: 0.5,
+            maxChildSize: 0.9,
+            expand: false, // Allow resizing of the sheet
+// Maximum height when expanded
+// Minimum height if dragged down
+// Starts at 3/4 of the screen height
+
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: SizedBox(),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 4,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          const Expanded(
+                            child: SizedBox(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        'Add New Item',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xffa4392f),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Form(
+                        child: Column(
+                          children: [
+                            const Row(
+                              children: [
+                                CustomTextField(
+                                  labelText: 'Kodu',
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                CustomTextField(
+                                  labelText: 'Item Name',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const Row(
+                              children: [
+                                CustomTextField(
+                                  labelText: 'Kalite',
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                CustomTextField(
+                                  labelText: 'Supplier',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const Row(
+                              children: [
+                                CustomTextField(
+                                  suf: Text("GSM"),
+                                  labelText: 'EnI',
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                CustomTextField(
+                                  suf: Text("GSM"),
+                                  labelText: 'Gramaj',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            //======================
+                            const Row(
+                              children: [
+                                CustomTextField(
+                                  labelText: 'Item No.',
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                CustomTextField(
+                                  labelText: 'NOT',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            const Row(
+                              children: [
+                                CustomTextField(
+                                  pre: Text("\$ "),
+                                  labelText: 'Price',
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                CustomTextField(
+                                  labelText: 'Date',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                if (selectedItem == 'Naylon')
+                                  const CustomTextField(
+                                    labelText: 'Composition',
+                                  ),
+                              ],
+                            ),
+                            RoundedButton(
+                              colour: const Color(0xffa4392f),
+                              title: 'Add',
+                              onPressed: () {},
+                              icon: Icons.add,
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   List<String> columnOrder = [
     'Kodu',
     'Name',
@@ -498,23 +665,24 @@ class ItemsScreenState extends State<ItemsScreen> {
                 });
               },
             ),
+          // IconButton(
+          //   onPressed: () {
+          //     setState(() {
+          //       edit = !edit;
+          //     });
+          //   },
+          //   icon: Icon(
+          //     edit ? Icons.edit_off : Icons.edit,
+          //     color: Colors.white,
+          //   ),
+          // ),
           IconButton(
             onPressed: () {
-              setState(() {
-                edit = !edit;
-              });
+              _showAddItemBottomSheet(context, selectedItem);
             },
-            icon: Icon(
-              edit ? Icons.edit_off : Icons.edit,
-              color: Colors.white,
-            ),
-          ),
-          IconButton(
-            onPressed:
-                GsheetAPI(SelectedItems: selectedItem).uploadDataToFirestore,
             icon: const Icon(
-              size: 20,
-              Icons.cloud_download_rounded,
+              size: 30,
+              Icons.add_box_rounded,
               color: Colors.white,
             ),
           ),
@@ -556,6 +724,11 @@ class ItemsScreenState extends State<ItemsScreen> {
           )
         ],
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     _showAddItemBottomSheet(context, selectedItem);
+      //   },
+      // ),
     );
   }
 }

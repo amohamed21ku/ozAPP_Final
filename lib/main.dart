@@ -59,7 +59,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(),
+      theme: ThemeData().copyWith(
+        inputDecorationTheme: const InputDecorationTheme(
+          floatingLabelStyle: TextStyle(color: Color(0xffa4392f)),
+        ),
+      ),
       initialRoute: isNew ? 'welcomescreen' : 'homescreen',
       routes: {
         "welcomescreen": (context) => const WelcomeScreen(),

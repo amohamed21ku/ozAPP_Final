@@ -616,7 +616,7 @@ class VisibleActions extends StatefulWidget {
   final VoidCallback saveChangesToFirebase;
   final VoidCallback showColumnSelector;
 
-  const VisibleActions({
+  VisibleActions({
     super.key,
     required this.isVisible,
     required this.selectedItem,
@@ -648,33 +648,10 @@ class _VisibleActionsState extends State<VisibleActions> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: GsheetAPI(SelectedItems: widget.selectedItem)
-                            .uploadDataToGoogleSheet,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed:
-                                  GsheetAPI(SelectedItems: widget.selectedItem)
-                                      .uploadDataToGoogleSheet,
-                              icon: const Icon(
-                                size: 20,
-                                Icons.upload_file_rounded,
-                                color: Color(0xffa4392f),
-                              ),
-                            ),
-                            Text(
-                              'Send To Excel',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xffa4392f),
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Expanded(
+                    //   child: ElevatedButton.icon(onPressed:  showAddItemBottomSheet(context,S), label: 'Add Item')
+                    // ),
+                    // Add the button Here
                     Expanded(
                       child: GestureDetector(
                         onTap: GsheetAPI(SelectedItems: widget.selectedItem)
@@ -702,6 +679,35 @@ class _VisibleActionsState extends State<VisibleActions> {
                         ),
                       ),
                     ),
+                    // Expanded(
+                    //   child: GestureDetector(
+                    //     onTap: GsheetAPI(SelectedItems: widget.selectedItem)
+                    //         .uploadDataToFirestore,
+                    //     child: Row(
+                    //       children: [
+                    //         IconButton(
+                    //           onPressed: () {
+                    //             setState(() {
+                    //               widget.edit = !widget.edit;
+                    //             });
+                    //           },
+                    //           icon: const Icon(
+                    //             size: 20,
+                    //             Icons.edit,
+                    //             color: Color(0xffa4392f),
+                    //           ),
+                    //         ),
+                    //         Text(
+                    //           'Edit Mode',
+                    //           style: GoogleFonts.poppins(
+                    //             color: const Color(0xffa4392f),
+                    //             fontSize: 14,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
                 Row(
@@ -752,6 +758,57 @@ class _VisibleActionsState extends State<VisibleActions> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+//==================================
+
+class CustomTextField extends StatelessWidget {
+  final String labelText;
+  final pre;
+  final suf;
+
+  const CustomTextField({
+    Key? key,
+    required this.labelText,
+    this.pre,
+    this.suf,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: TextFormField(
+        cursorColor: const Color(0xffa4392f), // Set the cursor color to red
+        style: GoogleFonts.poppins(
+          // Set the input text font to Google Poppins
+          fontSize: 16,
+          color: Colors.black, // You can change this color as needed
+        ),
+        decoration: InputDecoration(
+          prefix: this.pre,
+          suffix: this.suf,
+          labelText: labelText, // Use the passed label text
+          labelStyle: GoogleFonts.poppins(
+            fontSize: 16,
+            color: Colors.grey, // Default label color when not focused
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(
+              color:
+                  Color(0xffa4392f), // Set the border color to red when focused
+              width: 2.0,
+            ),
+          ),
+          enabledBorder: const OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Colors.grey, // Default border color when not focused
+              width: 1.0,
+            ),
+          ),
+        ),
       ),
     );
   }
