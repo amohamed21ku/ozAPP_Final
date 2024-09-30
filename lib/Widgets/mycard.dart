@@ -156,8 +156,16 @@ class _MyCardState extends State<MyCard> {
 
   Widget _buildTextField(TextEditingController controller, String label,
       {bool expanded = true}) {
+    late String pre;
+    if (label == 'Price') {
+      pre = "\$ ";
+    } else {
+      pre = "";
+    }
+
     Widget textField = TextField(
       decoration: InputDecoration(
+        prefix: Text(pre),
         labelText: label,
         labelStyle:
             GoogleFonts.poppins(fontSize: 14, color: const Color(0xffa4392f)),
