@@ -12,7 +12,6 @@ class Theitems extends StatefulWidget {
   String selectedItem;
   final Future<void> Function() loadColumnPreferences;
   final Future<void> Function() fetchDataForSelectedItem;
-  final Future<void> Function() saveChangesToFirebase;
   final VoidCallback showColumnSelector;
 
   final List<Map<String, dynamic>> dataList;
@@ -37,7 +36,6 @@ class Theitems extends StatefulWidget {
     required this.columnVisibility,
     required this.loadColumnPreferences,
     required this.fetchDataForSelectedItem,
-    required this.saveChangesToFirebase,
     required this.showColumnSelector,
   });
 
@@ -54,7 +52,6 @@ class _TheitemsState extends State<Theitems> {
             isVisible: widget.isVisible,
             selectedItem: widget.selectedItem,
             filteredList: widget.filteredList,
-            saveChangesToFirebase: widget.saveChangesToFirebase,
             showColumnSelector: widget.showColumnSelector),
         GestureDetector(
           onVerticalDragUpdate: (details) {
@@ -96,22 +93,6 @@ class _TheitemsState extends State<Theitems> {
             ),
           ),
         ),
-        // CustomItems(
-        //   SelectedItems: selectedItem,
-        //   isVisible: isVisible,
-        //   searchController: searchController,
-        //   dataList: dataList,
-        //   filterData: filterData,
-        //   saveChangesToFirebase: saveChangesToFirebase,
-        //   showColumnSelector: showColumnSelector,
-        //   columnOrder: columnOrder,
-        //   columnVisibility: columnVisibility,
-        //   filteredList: filteredList,
-        //   edit: edit,
-        //   deleteItem: deleteItem,
-        //   selectDate: _selectDate,
-        //   confirmDeleteItem: confirmDeleteItem,
-        // ),
       ],
     );
     //   floatingActionButton: widget.edit

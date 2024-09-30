@@ -1,18 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+import '../models/GsheetAPI.dart';
+import 'itemsScreen.dart';
+
 class ItemDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> item;
   final String docId;
   final String SelectedItems;
+  final int index;
 
   const ItemDetailsScreen(
       {super.key,
       required this.item,
       required this.docId,
-      required this.SelectedItems});
+      required this.SelectedItems,
+      required this.index});
 
   @override
   _ItemDetailsScreenState createState() => _ItemDetailsScreenState();
@@ -35,7 +41,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
   List<dynamic> previousPrices = [];
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
-  final TextEditingController _priceController = TextEditingController();
 
   void _confirmDelete(int index) async {
     final confirm = await showDialog<bool>(
@@ -90,6 +95,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   @override
   void initState() {
     super.initState();
+
     // Initialize controllers with safe defaults
     koduController.text = widget.item['Kodu'] ?? '';
     kaliteController.text = widget.item['Kalite'] ?? '';
@@ -101,7 +107,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     priceController.text = widget.item['Price'] ?? '';
     dateController.text = widget.item['Date'] ?? '';
     NOTController.text = widget.item['NOT'] ?? '';
+
     previousPrices = widget.item['Previous_Prices'] ?? [];
+    if (widget.SelectedItems == 'Naylon')
+      CompositionController.text = widget.item['Composition'] ?? '';
 
     // Set the default selected index based on matching values
     _selectedPriceIndex = -1; // Default to -1 (no selection)
@@ -129,70 +138,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     });
   }
 
-  // void _editRow(int index) async {
-  //   final price = previousPrices[index]['price'] ?? '';
-  //   final date = previousPrices[index]['date'] ?? '';
-  //
-  //   // Show a dialog to edit the row
-  //   final result = await showDialog<Map<String, String>>(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       _priceController.text = price;
-  //       _selectedDate = date;
-  //       return AlertDialog(
-  //         title: Text('Edit Price Entry', style: GoogleFonts.poppins()),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             TextField(
-  //               controller: _priceController,
-  //               keyboardType: TextInputType.number,
-  //               decoration: const InputDecoration(labelText: 'Price'),
-  //             ),
-  //             const SizedBox(height: 10),
-  //             TextButton(
-  //               onPressed: () async {
-  //                 final selectedDate = await _selectDate();
-  //                 if (selectedDate != null) {
-  //                   setState(() {
-  //                     _selectedDate = _dateFormat.format(selectedDate);
-  //                   });
-  //                 }
-  //               },
-  //               child: Text(_selectedDate.isEmpty
-  //                   ? 'Select Date'
-  //                   : 'Selected Date: $_selectedDate'),
-  //             ),
-  //           ],
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context);
-  //             },
-  //             child: const Text('Cancel'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context, {
-  //                 'price': _priceController.text,
-  //                 'date': _selectedDate,
-  //               });
-  //             },
-  //             child: const Text('Save'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  //
-  //   if (result != null) {
-  //     setState(() {
-  //       previousPrices[index] = result;
-  //     });
-  //   }
-  // }
-
   Future<DateTime?> _selectDate() async {
     final now = DateTime.now();
     return await showDatePicker(
@@ -204,42 +149,90 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   Future<void> saveChangesToFirebase() async {
-    try {
-      Map<String, dynamic> updatedData = {
-        'Kodu': koduController.text,
-        'Kalite': kaliteController.text,
-        'Eni': eniController.text,
-        'Gramaj': gramajController.text,
-        'Supplier': supplierController.text,
-        'Item No': itemNoController.text,
-        'Item Name': nameController.text,
-        'Price': priceController.text,
-        'Date': dateController.text,
-        'NOT': NOTController.text,
-        'Previous_Prices': previousPrices
-            .map((entry) => {
-                  'price': entry['price'],
-                  'date': entry['date'],
-                  'C/F': entry['C/F'], // Include C/F field
-                })
-            .toList(),
-      };
+    // Prepare the updated data map
+    Map<String, dynamic> updatedData = {
+      'Kodu': koduController.text,
+      'Kalite': kaliteController.text,
+      'Eni': eniController.text,
+      'Gramaj': gramajController.text,
+      'Supplier': supplierController.text,
+      'Item No': itemNoController.text,
+      'Item Name': nameController.text,
+      'Price': priceController.text,
+      'Date': dateController.text,
+      'NOT': NOTController.text,
+      'Previous_Prices': previousPrices
+          .map((entry) => {
+                'price': entry['price'],
+                'date': entry['date'],
+                'C/F': entry['C/F'], // Include C/F field
+              })
+          .toList(),
+      if (widget.SelectedItems == 'Naylon')
+        'Composition': CompositionController.text,
+    };
 
-      await FirebaseFirestore.instance
-          .collection(widget.SelectedItems)
-          .doc(widget.docId)
-          .update(updatedData);
+    // Check if any changes occurred
+    bool hasChanges = updatedData['Kodu'] != widget.item['Kodu'] ||
+        updatedData['Kalite'] != widget.item['Kalite'] ||
+        updatedData['Eni'] != widget.item['Eni'] ||
+        updatedData['Gramaj'] != widget.item['Gramaj'] ||
+        updatedData['Supplier'] != widget.item['Supplier'] ||
+        updatedData['Item No'] != widget.item['Item No'] ||
+        updatedData['Item Name'] != widget.item['Item Name'] ||
+        updatedData['Price'] != widget.item['Price'] ||
+        updatedData['Date'] != widget.item['Date'] ||
+        updatedData['NOT'] != widget.item['NOT'] ||
+        updatedData['Previous_Prices'].toString() !=
+            widget.item['Previous_Prices'].toString() ||
+        (widget.SelectedItems == 'Naylon' &&
+            updatedData['Composition'] != widget.item['Composition']);
+
+    if (!hasChanges) {
+      // If no changes, do nothing
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No changes detected')),
+        );
+      }
+      return;
+    }
+
+    try {
+      // If `Kodu` changed, delete the old document and create a new one
+      if (updatedData['Kodu'] != widget.item['Kodu']) {
+        // Delete the old document
+        await FirebaseFirestore.instance
+            .collection(widget.SelectedItems)
+            .doc(widget.docId)
+            .delete();
+
+        // Create a new document with the updated `Kodu` as the document ID
+        await FirebaseFirestore.instance
+            .collection(widget.SelectedItems)
+            .doc(updatedData['Kodu'])
+            .set(updatedData);
+      } else {
+        // If `Kodu` hasn't changed, update the existing document
+        await FirebaseFirestore.instance
+            .collection(widget.SelectedItems)
+            .doc(widget.docId)
+            .update(updatedData);
+      }
+
+      await GsheetAPI(SelectedItems: widget.SelectedItems)
+          .uploadDataToGoogleSheet();
 
       if (mounted) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('Changes saved successfully')),
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Changes saved successfully')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text('Failed to save changes: $e')),
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save changes: $e')),
+        );
       }
     }
   }
@@ -561,6 +554,23 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     );
   }
 
+  void deleteItem() async {
+    // If it's an existing item, delete directly from Firebase
+
+    try {
+      await FirebaseFirestore.instance
+          .collection(widget.SelectedItems)
+          .doc(widget.item['id'])
+          .delete();
+      ItemsScreenState.filteredList.removeAt(0);
+      // print(widget.item);
+      print(ItemsScreenState.filteredList);
+    } catch (e) {
+      // print('Error deleting item: $e');
+      // Handle error if deletion fails
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -588,17 +598,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           actions: [
             IconButton(
               onPressed: () async {
-                // If it's an existing item, delete directly from Firebase
-
-                try {
-                  await FirebaseFirestore.instance
-                      .collection(widget.SelectedItems)
-                      .doc(widget.docId)
-                      .delete();
-                } catch (e) {
-                  print('Error deleting item: $e');
-                  // Handle error if deletion fails
-                }
+                deleteItem();
                 Navigator.pop(context);
               },
               icon: const Icon(
@@ -629,6 +629,16 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   enabled: true,
                   suffix: '',
                   prefix: ''),
+              const SizedBox(height: 10),
+
+              if (widget.SelectedItems == 'Naylon')
+                buildTextField(
+                    controller: CompositionController,
+                    label: 'Composition',
+                    enabled: true,
+                    suffix: '',
+                    prefix: ''),
+
               Row(
                 children: [
                   Expanded(

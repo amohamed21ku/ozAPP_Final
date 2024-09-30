@@ -312,8 +312,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
         actions: [
           IconButton(
             icon: const Icon(
-              Icons.add,
+              Icons.add_box_rounded,
               color: Colors.white,
+              size: 25,
             ),
             onPressed: () {
               _addCustomer(context);

@@ -490,7 +490,6 @@ class CustomItems extends StatelessWidget {
   final bool isVisible;
   final TextEditingController searchController;
   final Function(String) filterData;
-  final VoidCallback saveChangesToFirebase;
   final VoidCallback showColumnSelector;
   final List<String> columnOrder;
   final Map<String, bool> columnVisibility;
@@ -499,7 +498,7 @@ class CustomItems extends StatelessWidget {
   final Function(int) deleteItem;
   final Future<void> Function(BuildContext, int) selectDate;
   final Future<bool?> Function(int) confirmDeleteItem;
-  // final Function(String, bool) fetchDataFromFirestore;
+  final Future<void> Function() fetchDataForSelectedItem;
   List<Map<String, dynamic>> dataList;
 
   CustomItems({
@@ -507,7 +506,6 @@ class CustomItems extends StatelessWidget {
     required this.isVisible,
     required this.searchController,
     required this.filterData,
-    required this.saveChangesToFirebase,
     required this.showColumnSelector,
     required this.columnOrder,
     required this.columnVisibility,
@@ -518,7 +516,7 @@ class CustomItems extends StatelessWidget {
     required this.confirmDeleteItem,
     required this.SelectedItems,
     required this.dataList,
-    // required this.fetchDataFromFirestore,
+    required this.fetchDataForSelectedItem,
   });
 
   @override
@@ -582,14 +580,14 @@ class CustomItems extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => ItemDetailsScreen(
+                                          index: index,
                                           SelectedItems: SelectedItems,
                                           item: filteredList[index],
                                           docId: filteredList[index]['id'],
                                         )),
-                              );
-                              //     .then((_) {
-                              //   fetchDataFromFirestore(SelectedItems, true);
-                              // });
+                              ).then((_) {
+                                fetchDataForSelectedItem;
+                              });
                             },
                             child: ItemCard(
                               Item: filteredList[index],
@@ -613,7 +611,6 @@ class VisibleActions extends StatefulWidget {
   final bool isVisible;
   final String selectedItem;
   final List<dynamic> filteredList;
-  final VoidCallback saveChangesToFirebase;
   final VoidCallback showColumnSelector;
 
   VisibleActions({
@@ -621,7 +618,6 @@ class VisibleActions extends StatefulWidget {
     required this.isVisible,
     required this.selectedItem,
     required this.filteredList,
-    required this.saveChangesToFirebase,
     required this.showColumnSelector,
   });
 
@@ -654,14 +650,17 @@ class _VisibleActionsState extends State<VisibleActions> {
                     // Add the button Here
                     Expanded(
                       child: GestureDetector(
-                        onTap: GsheetAPI(SelectedItems: widget.selectedItem)
-                            .uploadDataToFirestore,
+                        onTap: () {
+                          GsheetAPI(SelectedItems: widget.selectedItem)
+                              .ConfirmingGetFromGoogleSheet(context);
+                        },
                         child: Row(
                           children: [
                             IconButton(
-                              onPressed:
-                                  GsheetAPI(SelectedItems: widget.selectedItem)
-                                      .uploadDataToFirestore,
+                              onPressed: () {
+                                GsheetAPI(SelectedItems: widget.selectedItem)
+                                    .ConfirmingGetFromGoogleSheet(context);
+                              },
                               icon: const Icon(
                                 size: 20,
                                 Icons.cloud_download_rounded,
@@ -764,49 +763,47 @@ class _VisibleActionsState extends State<VisibleActions> {
 }
 
 //==================================
-
 class CustomTextField extends StatelessWidget {
   final String labelText;
+  final TextEditingController controller;
   final pre;
   final suf;
 
   const CustomTextField({
     Key? key,
     required this.labelText,
+    required this.controller,
     this.pre,
     this.suf,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: TextFormField(
-        cursorColor: const Color(0xffa4392f), // Set the cursor color to red
-        style: GoogleFonts.poppins(
-          // Set the input text font to Google Poppins
+    return TextFormField(
+      controller: controller,
+      cursorColor: const Color(0xffa4392f),
+      style: GoogleFonts.poppins(
+        fontSize: 16,
+        color: Colors.black,
+      ),
+      decoration: InputDecoration(
+        prefix: this.pre,
+        suffix: this.suf,
+        labelText: labelText,
+        labelStyle: GoogleFonts.poppins(
           fontSize: 16,
-          color: Colors.black, // You can change this color as needed
+          color: Colors.grey,
         ),
-        decoration: InputDecoration(
-          prefix: this.pre,
-          suffix: this.suf,
-          labelText: labelText, // Use the passed label text
-          labelStyle: GoogleFonts.poppins(
-            fontSize: 16,
-            color: Colors.grey, // Default label color when not focused
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Color(0xffa4392f),
+            width: 2.0,
           ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(
-              color:
-                  Color(0xffa4392f), // Set the border color to red when focused
-              width: 2.0,
-            ),
-          ),
-          enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey, // Default border color when not focused
-              width: 1.0,
-            ),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.grey,
+            width: 1.0,
           ),
         ),
       ),

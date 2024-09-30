@@ -23,36 +23,65 @@ class ItemsScreenState extends State<ItemsScreen> {
   String selectedItem = 'Polyester';
 
   List<Map<String, dynamic>> dataList = [];
-  List<Map<String, dynamic>> filteredList = [];
+  static List<Map<String, dynamic>> filteredList = [];
   List<Map<String, dynamic>> itemsToDelete = [];
   bool isSearching = false; // Track whether the search bar is active
 
   TextEditingController searchController = TextEditingController();
+  late StreamSubscription<QuerySnapshot> _firestoreSubscription;
 
   void _showAddItemBottomSheet(BuildContext context, String selectedItem) {
+    // Create controllers for each field
+    final koduController = TextEditingController();
+    final itemNameController = TextEditingController();
+    final kaliteController = TextEditingController();
+    final supplierController = TextEditingController();
+    final eniController = TextEditingController();
+    final gramajController = TextEditingController();
+    final itemNoController = TextEditingController();
+    final notController = TextEditingController();
+    final priceController = TextEditingController();
+    final dateController = TextEditingController();
+    final compositionController = TextEditingController();
+    Future<void> _selectDate(BuildContext context) async {
+      DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2101),
+        builder: (BuildContext context, Widget? child) {
+          return Theme(
+            data: ThemeData.light().copyWith(
+              colorScheme: const ColorScheme.light(primary: Color(0xffa4392f)),
+              buttonTheme:
+                  const ButtonThemeData(textTheme: ButtonTextTheme.primary),
+            ),
+            child: child!,
+          );
+        },
+      );
+      if (pickedDate != null) {
+        setState(() {
+          dateController.text = pickedDate.toString().split(' ')[0];
+        });
+      }
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      sheetAnimationStyle: AnimationStyle(
-          duration: const Duration(
-              milliseconds:
-                  700)), // Allows the bottom sheet to resize when the keyboard opens
+      sheetAnimationStyle:
+          AnimationStyle(duration: const Duration(milliseconds: 700)),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context)
-                .viewInsets
-                .bottom, // Adjust bottom padding when keyboard opens
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: DraggableScrollableSheet(
             initialChildSize: 0.75,
             minChildSize: 0.5,
             maxChildSize: 0.9,
-            expand: false, // Allow resizing of the sheet
-// Maximum height when expanded
-// Minimum height if dragged down
-// Starts at 3/4 of the screen height
-
+            expand: false,
             builder: (context, scrollController) {
               return SingleChildScrollView(
                 controller: scrollController,
@@ -62,24 +91,18 @@ class ItemsScreenState extends State<ItemsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Expanded(
-                            child: SizedBox(),
-                          ),
+                          const Expanded(flex: 1, child: SizedBox()),
                           Expanded(
-                            child: Container(
-                              height: 4,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const Expanded(
-                            child: SizedBox(),
-                          ),
+                              child: Container(
+                            height: 4,
+                            color: Colors.grey,
+                          )),
+                          const Expanded(child: SizedBox())
                         ],
                       ),
                       const SizedBox(
-                        height: 5,
+                        height: 6,
                       ),
                       Text(
                         'Add New Item',
@@ -93,95 +116,151 @@ class ItemsScreenState extends State<ItemsScreen> {
                       Form(
                         child: Column(
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                CustomTextField(
-                                  labelText: 'Kodu',
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'Kodu',
+                                    controller: koduController,
+                                  ),
                                 ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                CustomTextField(
-                                  labelText: 'Item Name',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            const Row(
-                              children: [
-                                CustomTextField(
-                                  labelText: 'Kalite',
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                CustomTextField(
-                                  labelText: 'Supplier',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            const Row(
-                              children: [
-                                CustomTextField(
-                                  suf: Text("GSM"),
-                                  labelText: 'EnI',
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                CustomTextField(
-                                  suf: Text("GSM"),
-                                  labelText: 'Gramaj',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            //======================
-                            const Row(
-                              children: [
-                                CustomTextField(
-                                  labelText: 'Item No.',
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                CustomTextField(
-                                  labelText: 'NOT',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            const Row(
-                              children: [
-                                CustomTextField(
-                                  pre: Text("\$ "),
-                                  labelText: 'Price',
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                CustomTextField(
-                                  labelText: 'Date',
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'Item Name',
+                                    controller: itemNameController,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 16),
                             Row(
                               children: [
-                                if (selectedItem == 'Naylon')
-                                  const CustomTextField(
-                                    labelText: 'Composition',
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'Kalite',
+                                    controller: kaliteController,
                                   ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'Supplier',
+                                    controller: supplierController,
+                                  ),
+                                ),
                               ],
                             ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'Eni',
+                                    suf: const Text("CM"),
+                                    controller: eniController,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    suf: const Text("GSM"),
+                                    labelText: 'Gramaj',
+                                    controller: gramajController,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'Item No.',
+                                    controller: itemNoController,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                    labelText: 'NOT',
+                                    controller: notController,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: CustomTextField(
+                                      labelText: 'Price',
+                                      controller: priceController,
+                                      pre: const Text("\$ ")),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 1,
+                                  child: GestureDetector(
+                                    onTap: () => _selectDate(
+                                        context), // Trigger date picker on tap
+                                    child: AbsorbPointer(
+                                      child: CustomTextField(
+                                        labelText: 'Date',
+                                        controller: dateController,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            if (selectedItem == 'Naylon')
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: CustomTextField(
+                                      labelText: 'Composition',
+                                      controller: compositionController,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            const SizedBox(height: 16),
                             RoundedButton(
+                              onPressed: () {
+                                addNewItem(
+                                  kodu: koduController.text,
+                                  itemName: itemNameController.text,
+                                  kalite: kaliteController.text,
+                                  supplier: supplierController.text,
+                                  eni: eniController.text,
+                                  gramaj: gramajController.text,
+                                  itemNo: itemNoController.text,
+                                  not: notController.text,
+                                  price: priceController.text,
+                                  date: dateController.text,
+                                  composition: selectedItem == 'Naylon'
+                                      ? compositionController.text
+                                      : '',
+                                );
+                                Navigator.pop(
+                                    context); // Close the bottom sheet
+                              },
                               colour: const Color(0xffa4392f),
                               title: 'Add',
-                              onPressed: () {},
                               icon: Icons.add,
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -194,6 +273,56 @@ class ItemsScreenState extends State<ItemsScreen> {
         );
       },
     );
+  }
+
+  void addNewItem({
+    required String kodu,
+    required String itemName,
+    required String kalite,
+    required String supplier,
+    required String eni,
+    required String gramaj,
+    required String itemNo,
+    required String not,
+    required String price,
+    required String date,
+    required String composition,
+  }) async {
+    // Create a map for the new item
+
+    final newItem = {
+      'Kodu': kodu,
+      'Item Name': itemName,
+      'Eni': eni,
+      'Gramaj': gramaj,
+      'Price': price,
+      'Date': date,
+      'Supplier': supplier,
+      'Kalite': kalite,
+      'NOT': not,
+      'Item No': itemNo,
+
+      'Previous_Prices': [],
+      if (selectedItem == 'Naylon') 'Composition': composition,
+      // 'isNew': true, // Flag to identify new items
+    };
+
+    try {
+      // Add the new item to the Firestore collection for SelectedItems
+      await FirebaseFirestore.instance
+          .collection(selectedItem)
+          .doc(kodu) // Replace with your actual collection name
+          .set(newItem);
+
+      // Optionally, you can update the local filteredList or manage state here if needed
+      setState(() {
+        filteredList.insert(
+            0, newItem); // If you want to keep local state in sync
+      });
+    } catch (e) {
+      // Handle any errors here
+      print('Error adding item to Firestore: $e');
+    }
   }
 
   List<String> columnOrder = [
@@ -256,6 +385,14 @@ class ItemsScreenState extends State<ItemsScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    // Cancel the Firestore listener when the widget is disposed
+    _firestoreSubscription.cancel();
+    searchController.dispose();
+    super.dispose();
+  }
+
   // String collection = 'items';
   @override
   void initState() {
@@ -265,6 +402,28 @@ class ItemsScreenState extends State<ItemsScreen> {
     // Listen to changes in the search input
     searchController.addListener(() {
       filterData(searchController.text);
+    });
+
+    // Start listening to Firestore changes
+    listenToFirestoreChanges();
+  }
+
+  void listenToFirestoreChanges() {
+    _firestoreSubscription = FirebaseFirestore.instance
+        .collection(selectedItem)
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        dataList = snapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data['Kodu'] = doc.id;
+          return data;
+        }).toList();
+
+        // Ensure dataList is sorted
+        dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
+        filteredList = List.from(dataList);
+      });
     });
   }
 
@@ -281,7 +440,7 @@ class ItemsScreenState extends State<ItemsScreen> {
 
       dataList = snapshot.docs.map((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Add document ID to the data
+        data['Kodu'] = doc.id; // Add document ID to the data
         return data;
       }).toList();
 
@@ -450,108 +609,88 @@ class ItemsScreenState extends State<ItemsScreen> {
     });
   }
 
-  DateTime excelSerialDateToDateTime(int serialDate) {
-    return DateTime(1899, 12, 30).add(Duration(days: serialDate));
-  }
+  // DateTime excelSerialDateToDateTime(int serialDate) {
+  //   return DateTime(1899, 12, 30).add(Duration(days: serialDate));
+  // }
 
   String formatDateString(DateTime date) {
     final DateFormat formatter = DateFormat('dd-MMM-yy');
     return formatter.format(date);
   }
 
-  Future<void> saveChangesToFirebase() async {
-    WriteBatch batch = FirebaseFirestore.instance.batch();
-
-    try {
-      for (int i = 0; i < filteredList.length; i++) {
-        if (filteredList[i].containsKey('isNew') && filteredList[i]['isNew']) {
-          // Add new item to Firebase
-          DocumentReference newDoc = FirebaseFirestore.instance
-              .collection(selectedItem)
-              .doc(filteredList[i]['Kodu']);
-          batch.set(newDoc, {
-            'Kodu': filteredList[i]['Kodu'],
-            'Item Name': filteredList[i]['Item Name'],
-            'Eni': filteredList[i]['Eni'],
-            'Gramaj': filteredList[i]['Gramaj'],
-            'Price': filteredList[i]['Price'],
-            'Date': filteredList[i]['Date'],
-            'Kalite': filteredList[i]['Kalite'],
-            'Item No': filteredList[i]['Item No'],
-            'NOT': filteredList[i]['NOT'],
-            'Supplier': filteredList[i]['Supplier'],
-            'Previous_Prices': filteredList[i]['Previous_Prices'],
-          });
-
-          // ];
-        } else {
-          // Update existing item in Firebase
-          DocumentReference oldDocRef = FirebaseFirestore.instance
-              .collection(selectedItem)
-              .doc(filteredList[i]['documentId']);
-          DocumentReference newDocRef = FirebaseFirestore.instance
-              .collection(selectedItem)
-              .doc(filteredList[i]['Kodu']);
-
-          if (filteredList[i]['documentId'] != filteredList[i]['Kodu']) {
-            // If Kodu has changed, copy to a new document and delete the old one
-            batch.set(newDocRef, {
-              'Kodu': filteredList[i]['Kodu'],
-              'Item Name': filteredList[i]['Item Name'],
-              'Eni': filteredList[i]['Eni'],
-              'Gramaj': filteredList[i]['Gramaj'],
-              'Price': filteredList[i]['Price'],
-              'Date': filteredList[i]['Date'],
-              'Kalite': filteredList[i]['Kalite'],
-              'Item No': filteredList[i]['Item No'],
-              'NOT': filteredList[i]['NOT'],
-              'Supplier': filteredList[i]['Supplier'],
-              'Previous_Prices': filteredList[i]['Previous_Prices'],
-            });
-            batch.delete(oldDocRef);
-
-            // Update the documentId in the local list
-            filteredList[i]['documentId'] = filteredList[i]['Kodu'];
-          } else {
-            // If Kodu has not changed, just update the existing document
-            batch.update(oldDocRef, {
-              'Kodu': filteredList[i]['Kodu'],
-              'Item Name': filteredList[i]['Item Name'],
-              'Eni': filteredList[i]['Eni'],
-              'Gramaj': filteredList[i]['Gramaj'],
-              'Price': filteredList[i]['Price'],
-              'Date': filteredList[i]['Date'],
-              'Kalite': filteredList[i]['Kalite'],
-              'Item No': filteredList[i]['Item No'],
-              'NOT': filteredList[i]['NOT'],
-              'Supplier': filteredList[i]['Supplier'],
-              'Previous_Prices': filteredList[i]['Previous_Prices'],
-            });
-          }
-        }
-      }
-
-      for (var item in itemsToDelete) {
-        DocumentReference docRef = FirebaseFirestore.instance
-            .collection(selectedItem)
-            .doc(item['documentId']);
-        batch.delete(docRef);
-      }
-
-      itemsToDelete.clear();
-
-      await batch.commit();
-      // await fetchDataFromFirestore('items2', false);
-      await saveDataToSharedPreferences();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data Saved')),
-      );
-    } catch (e) {
-      // print('Error saving changes: $e');
-    } finally {
-      // setState(() => isLoading = false);
-    }
-  }
+  // Future<void> saveChangesToFirebase() async {
+  //   print("fa: ${filteredList}");
+  //   WriteBatch batch = FirebaseFirestore.instance.batch();
+  //
+  //   try {
+  //     for (int i = 0; i < filteredList.length; i++) {
+  //       // Update existing item in Firebase
+  //       DocumentReference oldDocRef = FirebaseFirestore.instance
+  //           .collection(selectedItem)
+  //           .doc(filteredList[i]['documentId']);
+  //       DocumentReference newDocRef = FirebaseFirestore.instance
+  //           .collection(selectedItem)
+  //           .doc(filteredList[i]['Kodu']);
+  //
+  //       if (filteredList[i]['documentId'] != filteredList[i]['Kodu']) {
+  //         // If Kodu has changed, copy to a new document and delete the old one
+  //         batch.set(newDocRef, {
+  //           'Kodu': filteredList[i]['Kodu'],
+  //           'Item Name': filteredList[i]['Item Name'],
+  //           'Eni': filteredList[i]['Eni'],
+  //           'Gramaj': filteredList[i]['Gramaj'],
+  //           'Price': filteredList[i]['Price'],
+  //           'Date': filteredList[i]['Date'],
+  //           'Kalite': filteredList[i]['Kalite'],
+  //           'Item No': filteredList[i]['Item No'],
+  //           'NOT': filteredList[i]['NOT'],
+  //           'Supplier': filteredList[i]['Supplier'],
+  //           'Previous_Prices': filteredList[i]['Previous_Prices'],
+  //         });
+  //         batch.delete(oldDocRef);
+  //
+  //         // Update the documentId in the local list
+  //         filteredList[i]['documentId'] = filteredList[i]['Kodu'];
+  //       } else {
+  //         // If Kodu has not changed, just update the existing document
+  //         batch.update(oldDocRef, {
+  //           'Kodu': filteredList[i]['Kodu'],
+  //           'Item Name': filteredList[i]['Item Name'],
+  //           'Eni': filteredList[i]['Eni'],
+  //           'Gramaj': filteredList[i]['Gramaj'],
+  //           'Price': filteredList[i]['Price'],
+  //           'Date': filteredList[i]['Date'],
+  //           'Kalite': filteredList[i]['Kalite'],
+  //           'Item No': filteredList[i]['Item No'],
+  //           'NOT': filteredList[i]['NOT'],
+  //           'Supplier': filteredList[i]['Supplier'],
+  //           'Previous_Prices': filteredList[i]['Previous_Prices'],
+  //         });
+  //       }
+  //     }
+  //
+  //     for (var item in itemsToDelete) {
+  //       DocumentReference docRef = FirebaseFirestore.instance
+  //           .collection(selectedItem)
+  //           .doc(item['documentId']);
+  //       batch.delete(docRef);
+  //     }
+  //
+  //     itemsToDelete.clear();
+  //
+  //     await batch.commit();
+  //     await saveDataToSharedPreferences();
+  //     await GsheetAPI(SelectedItems: selectedItem).uploadDataToGoogleSheet();
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Data Saved')),
+  //     );
+  //   } catch (e) {
+  //     // print('Error saving changes: $e');
+  //   } finally {
+  //     // setState(() => isLoading = false);
+  //   }
+  // }
 
   Future<void> saveDataToSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -596,9 +735,11 @@ class ItemsScreenState extends State<ItemsScreen> {
             Icons.arrow_back,
             color: Colors.white,
           ),
-          onPressed: () {
+          onPressed: () async {
+            // Save changes to Firebase
             // saveChangesToFirebase();
-            // GsheetAPI(SelectedItems: selectedItem).uploadDataToGoogleSheet;
+
+            // Close the dialog or perform any other actions
             Navigator.pop(context);
           },
         ),
@@ -665,17 +806,6 @@ class ItemsScreenState extends State<ItemsScreen> {
                 });
               },
             ),
-          // IconButton(
-          //   onPressed: () {
-          //     setState(() {
-          //       edit = !edit;
-          //     });
-          //   },
-          //   icon: Icon(
-          //     edit ? Icons.edit_off : Icons.edit,
-          //     color: Colors.white,
-          //   ),
-          // ),
           IconButton(
             onPressed: () {
               _showAddItemBottomSheet(context, selectedItem);
@@ -703,7 +833,6 @@ class ItemsScreenState extends State<ItemsScreen> {
             columnVisibility: columnVisibility,
             loadColumnPreferences: loadColumnPreferences,
             fetchDataForSelectedItem: fetchDataForSelectedItem,
-            saveChangesToFirebase: saveChangesToFirebase,
             showColumnSelector: showColumnSelector,
           ),
           CustomItems(
@@ -711,7 +840,6 @@ class ItemsScreenState extends State<ItemsScreen> {
             isVisible: isVisible,
             searchController: searchController,
             filterData: filterData,
-            saveChangesToFirebase: saveChangesToFirebase,
             showColumnSelector: showColumnSelector,
             columnOrder: columnOrder,
             columnVisibility: columnVisibility,
@@ -721,6 +849,7 @@ class ItemsScreenState extends State<ItemsScreen> {
             selectDate: _selectDate,
             confirmDeleteItem: confirmDeleteItem,
             dataList: dataList,
+            fetchDataForSelectedItem: fetchDataForSelectedItem,
           )
         ],
       ),

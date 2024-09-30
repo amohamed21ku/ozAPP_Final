@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:gsheets/gsheets.dart';
+import 'package:intl/intl.dart';
+import 'package:oz/Screens/itemsScreen.dart';
 
 class GsheetAPI {
   final String SelectedItems;
@@ -31,16 +34,6 @@ class GsheetAPI {
         await ss.addWorksheet(SelectedItems);
   }
 
-  // Future<void> print_SHEET() async {
-  //   final sheetData = await fetchSheetData();
-  //   print(sheetData);
-  // }
-  //
-  // Future<void> print_SHEET2() async {
-  //   final sheetData = await fetchFirestoreData();
-  //   print(sheetData);
-  // }
-
   Future<List<Map<String, dynamic>>> fetchSheetData() async {
     await init();
 
@@ -67,8 +60,18 @@ class GsheetAPI {
         if (headers[j] == 'S/Item Name') {
           headers[j] = 'Item Name';
         }
-        item[headers[j]] = row.length > j ? row[j] : '';
+
+        // Check if the value is a serial number and convert it to a date
+        dynamic value = row.length > j ? row[j] : '';
+        item[headers[j]] = (headers[j] == 'Date' && value != '')
+            ? convertSerialToDate(value)
+            : value;
+
+        // row[9] = row.length > j ? convertSerialToDate(row[9]) : '';
       }
+
+      // print(row);
+
       item.remove('price');
       item.remove('C/F');
       item.remove('date');
@@ -79,7 +82,7 @@ class GsheetAPI {
         if (row[j].isNotEmpty || row.length > j + 2) {
           Map<String, dynamic> priceMap = {
             'price': row.length > j ? row[j] : '',
-            'date': row.length > j + 1 ? row[j + 2] : '',
+            'date': row.length > j + 1 ? convertSerialToDate(row[j + 2]) : '',
             'C/F': row.length > j + 2 ? row[j + 1] : ''
           };
           previousPrices.add(priceMap);
@@ -91,6 +94,106 @@ class GsheetAPI {
     }
 
     return items;
+  }
+
+// Helper function to check if a string is a numeric value
+  bool isNumeric(String s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
+  }
+
+// Function to convert Google Sheets serial number to DateTime and format it
+  String convertSerialToDate(String serial) {
+    final int daysSinceBase = int.tryParse(serial) ?? 0;
+    final DateTime baseDate = DateTime(1899, 12, 30);
+    final DateTime date = baseDate.add(Duration(days: daysSinceBase));
+
+    // Return the date in the yyyy-MM-dd format
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  Future<void> uploadDataToFirestoreWithDeltaSync() async {
+    final firestore = FirebaseFirestore.instance;
+
+    // Step 1: Fetch the data from Google Sheets and Firestore
+    final sheetData = await fetchSheetData();
+    final firestoreData = await fetchFirestoreData();
+
+    // Map Firestore data for easy comparison
+    final firestoreDataMap = {
+      for (var docId in firestoreData.keys) docId: firestoreData[docId]
+    };
+
+    // Map Google Sheets data for easy comparison
+    final sheetDataMap = {
+      for (var item in sheetData)
+        if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
+          item['Kodu']: item
+    };
+
+    // Step 2: Identify added, updated, and deleted items
+    List<Map<String, dynamic>> addedItems = [];
+    List<Map<String, dynamic>> updatedItems = [];
+    List<String> deletedItems = [];
+
+    // Find items to be added or updated
+    sheetDataMap.forEach((docId, item) {
+      if (!firestoreDataMap.containsKey(docId)) {
+        // Item is new (not in Firestore)
+        addedItems.add(item);
+      } else {
+        // Item exists in Firestore, check if it has changed
+        final firestoreItem = firestoreDataMap[docId];
+        if (hasItemChanged(firestoreItem, item)) {
+          updatedItems.add(item);
+        }
+      }
+    });
+
+    // Find items to be deleted
+    firestoreDataMap.forEach((docId, _) {
+      if (!sheetDataMap.containsKey(docId)) {
+        deletedItems.add(docId);
+      }
+    });
+
+    // Step 3: Apply changes
+    final batch = firestore.batch();
+
+    // Add new items
+    for (var item in addedItems) {
+      final docRef = firestore.collection(SelectedItems).doc(item['Kodu']);
+      batch.set(docRef, item);
+    }
+
+    // Update modified items
+    for (var item in updatedItems) {
+      final docRef = firestore.collection(SelectedItems).doc(item['Kodu']);
+      batch.update(docRef, item);
+    }
+
+    // Delete removed items
+    for (var docId in deletedItems) {
+      final docRef = firestore.collection(SelectedItems).doc(docId);
+      batch.delete(docRef);
+    }
+
+    // Commit the batch
+    await batch.commit();
+    print('Delta Synchronization Complete');
+  }
+
+// Helper function to check if an item has changed (compare each field)
+  bool hasItemChanged(
+      Map<String, dynamic> firestoreItem, Map<String, dynamic> sheetItem) {
+    for (var key in sheetItem.keys) {
+      if (firestoreItem[key] != sheetItem[key]) {
+        return true; // Item has changed
+      }
+    }
+    return false;
   }
 
 // NEED THIS ...
@@ -139,6 +242,43 @@ class GsheetAPI {
 
     // Commit the batch
     await batch.commit();
+    final updatedFirestoreData = await fetchFirestoreData();
+    ItemsScreenState.filteredList =
+        updatedFirestoreData as List<Map<String, dynamic>>;
+  }
+
+  Future<void> ConfirmingGetFromGoogleSheet(BuildContext context) async {
+    // Show a confirmation dialog
+    final bool? shouldContinue = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Warning'),
+          content: Text(
+            'The current data will be overwritten by the data from the Google Sheet. Do you want to continue?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // Cancel action
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // Continue action
+              },
+              child: Text('Continue'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user confirmed, call the function to upload data to Firestore
+    if (shouldContinue == true) {
+      await uploadDataToFirestore();
+    }
   }
 
   // NEED THIS ...
