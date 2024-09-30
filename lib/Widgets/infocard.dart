@@ -64,7 +64,7 @@ class InfoCard extends StatelessWidget {
     Widget cardContent = GestureDetector(
       onTap: onpress,
       child: Material(
-        elevation: 2, // Add elevation to the whole container
+        elevation: 3, // Add elevation to the whole container
         borderRadius: BorderRadius.circular(30),
         child: Container(
           padding: const EdgeInsets.all(10),

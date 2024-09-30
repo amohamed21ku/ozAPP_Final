@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:gsheets/gsheets.dart';
 import 'package:intl/intl.dart';
 import 'package:oz/Screens/itemsScreen.dart';
@@ -253,22 +254,50 @@ class GsheetAPI {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Warning'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: Colors.white,
+          title: Text(
+            'Warning !!',
+            style: GoogleFonts.poppins(
+              color: Color(0xffa4392f), // Red text for the warning
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+            ),
+          ),
           content: Text(
             'The current data will be overwritten by the data from the Google Sheet. Do you want to continue?',
+            style: GoogleFonts.poppins(
+              color: Colors.black, // Standard black text for content
+              fontSize: 16.0,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false); // Cancel action
               },
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey, // Gray color for the cancel button
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true); // Continue action
               },
-              child: Text('Continue'),
+              child: Text(
+                'Continue',
+                style: GoogleFonts.poppins(
+                  color:
+                      Color(0xffa4392f), // Green color for the continue button
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );

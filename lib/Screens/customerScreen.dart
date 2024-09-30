@@ -38,10 +38,17 @@ class _CustomerScreenState extends State<CustomerScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(20.0), // Rounded corners for the dialog
+          ),
+          backgroundColor: Colors.white, // Set background to white
           title: Text(
             'Edit Customer Info',
             style: GoogleFonts.poppins(
-              color: const Color(0xffa4392f), // Title color
+              color: const Color(0xffa4392f), // Title color in red
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
             ),
           ),
           content: SizedBox(
@@ -50,32 +57,51 @@ class _CustomerScreenState extends State<CustomerScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Name',
-                    labelStyle:
-                        TextStyle(color: Color(0xffa4392f)), // Label color
-                    focusedBorder: UnderlineInputBorder(
+                    labelStyle: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // Label color in red
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
-                          color: Color(
-                              0xffa4392f)), // Underline color when focused
+                        color: Color(0xffa4392f), // Border color in red
+                      ),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xffa4392f), // Focused border color in red
+                      ),
                     ),
                   ),
-                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  cursorColor: const Color(0xffa4392f), // Cursor color in red
+                  style: GoogleFonts.poppins(
+                    color: Colors.black, // Text color in black
+                  ),
                   controller: TextEditingController(text: customer.name),
                   onChanged: (value) => updatedName = value,
                 ),
+                const SizedBox(height: 16.0), // Space between fields
                 TextField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Company',
-                    labelStyle:
-                        TextStyle(color: Color(0xffa4392f)), // Label color
-                    focusedBorder: UnderlineInputBorder(
+                    labelStyle: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // Label color in red
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
-                          color: Color(
-                              0xffa4392f)), // Underline color when focused
+                        color: Color(0xffa4392f), // Border color in red
+                      ),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xffa4392f), // Focused border color in red
+                      ),
                     ),
                   ),
-                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  cursorColor: const Color(0xffa4392f), // Cursor color in red
+                  style: GoogleFonts.poppins(
+                    color: Colors.black, // Text color in black
+                  ),
                   controller: TextEditingController(text: customer.company),
                   onChanged: (value) => updatedCompany = value,
                 ),
@@ -93,7 +119,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   child: Text(
                     'Cancel',
                     style: GoogleFonts.poppins(
-                      color: const Color(0xffa4392f), // Button text color
+                      color:
+                          const Color(0xffa4392f), // Button text color in red
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -112,13 +140,18 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     await fetchCustomers(); // Refresh customer list
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(0xffa4392f), // Button background color
+                    backgroundColor: const Color(
+                        0xffa4392f), // Button background color in red
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(12.0), // Rounded button
+                    ),
                   ),
                   child: Text(
                     'Save',
                     style: GoogleFonts.poppins(
-                      color: Colors.white, // Button text color
+                      color: Colors.white, // Button text color in white
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -202,45 +235,59 @@ class _CustomerScreenState extends State<CustomerScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: Colors.white,
           title: Text(
             'Add Customer',
             style: GoogleFonts.poppins(
-              color: const Color(0xffa4392f), // Title color
+              color: const Color(0xffa4392f), // Title color in red
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
             ),
           ),
           content: SizedBox(
             width: double.maxFinite,
-            // height: 400,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Name',
-                    labelStyle:
-                        TextStyle(color: Color(0xffa4392f)), // Label color
-                    focusedBorder: UnderlineInputBorder(
+                    labelStyle: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // Label color in red
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
-                          color: Color(
-                              0xffa4392f)), // Underline color when focused
+                        color:
+                            Color(0xffa4392f), // Underline color when focused
+                      ),
                     ),
                   ),
-                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  cursorColor: const Color(0xffa4392f), // Cursor color in red
                   onChanged: (value) => name = value,
+                  style: GoogleFonts.poppins(
+                      color: Colors.black), // Input text color
                 ),
+                const SizedBox(height: 10), // Add spacing between fields
                 TextField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Company',
-                    labelStyle:
-                        TextStyle(color: Color(0xffa4392f)), // Label color
-                    focusedBorder: UnderlineInputBorder(
+                    labelStyle: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // Label color in red
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
                       borderSide: BorderSide(
-                          color: Color(
-                              0xffa4392f)), // Underline color when focused
+                        color:
+                            Color(0xffa4392f), // Underline color when focused
+                      ),
                     ),
                   ),
-                  cursorColor: const Color(0xffa4392f), // Cursor color
+                  cursorColor: const Color(0xffa4392f), // Cursor color in red
                   onChanged: (value) => company = value,
+                  style: GoogleFonts.poppins(
+                      color: Colors.black), // Input text color
                 ),
               ],
             ),
@@ -256,7 +303,9 @@ class _CustomerScreenState extends State<CustomerScreen> {
                   child: Text(
                     'Cancel',
                     style: GoogleFonts.poppins(
-                      color: const Color(0xffa4392f), // Button text color
+                      color:
+                          const Color(0xffa4392f), // Button text color in red
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -276,13 +325,17 @@ class _CustomerScreenState extends State<CustomerScreen> {
                     await fetchCustomers(); // Refresh customer list
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(0xffa4392f), // Button background color
+                    backgroundColor: const Color(
+                        0xffa4392f), // Button background color in red
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
                   ),
                   child: Text(
                     'Add',
                     style: GoogleFonts.poppins(
-                      color: Colors.white, // Button text color
+                      color: Colors.white, // Button text color in white
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -297,7 +350,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(

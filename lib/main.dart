@@ -1,16 +1,10 @@
-import 'dart:io';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:oz/firebase_options.dart';
-// import 'package:oz/Screens/SignUp.dart';
-// import 'package:oz/Screens/itemsScreen.dart';
-// import 'package:oz/Screens/usersScreen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
-// import 'Screens/balancesheet.dart';
-// import 'Screens/customerScreen.dart';
-// import 'Screens/homeScreen.dart';
 import 'Screens/balancesheet.dart';
 import 'Screens/customerScreen.dart';
 import 'Screens/homeScreen.dart';
@@ -18,24 +12,6 @@ import 'Screens/itemsScreen.dart';
 import 'Screens/login_screen.dart';
 import 'Screens/usersScreen.dart';
 import 'Screens/welcome_screen.dart';
-
-// Future<void> initializeFirebase() async {
-//   if (Platform.isIOS || Platform.isMacOS) {
-//     // Initialize Firebase for iOS
-//     await Firebase.initializeApp();
-//   } else if (Platform.isAndroid) {
-//     await Firebase.initializeApp(
-//       options: const FirebaseOptions(
-//         apiKey: "AIzaSyC5jqnQLoXXHnICVAgqmKEMTIIPCOIifAs",
-//         appId: "1:648146955193:android:50dc26b187ddce90022468",
-//         messagingSenderId: "648146955193",
-//         projectId: "ozapp-310aa",
-//       ),
-//     );
-//   } else {
-//     throw UnsupportedError("Unsupported platform");
-//   }
-// }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,8 +24,37 @@ Future<void> main() async {
   SharedPreferences logindata = await SharedPreferences.getInstance();
   bool isNew = logindata.getBool('login') ?? true;
 
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ));
   runApp(MyApp(isNew: isNew));
 }
+
+final ThemeData customTheme = ThemeData().copyWith(
+  inputDecorationTheme: const InputDecorationTheme(
+    floatingLabelStyle:
+        TextStyle(color: Color(0xffa4392f)), // Floating label color
+    labelStyle: TextStyle(color: Color(0xffa4392f)), // Label color
+    enabledBorder: UnderlineInputBorder(
+      borderSide:
+          BorderSide(color: Color(0xffa4392f)), // Border color when enabled
+    ),
+    focusedBorder: UnderlineInputBorder(
+      borderSide:
+          BorderSide(color: Color(0xffa4392f)), // Border color when focused
+    ),
+    hintStyle: TextStyle(color: Colors.grey), // Hint text color
+  ),
+  colorScheme: ColorScheme.light(
+      primary: const Color(0xffa4392f)), // Set primary color for the theme
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor:
+          const Color(0xffa4392f), // Background color for ElevatedButtons
+    ),
+  ),
+);
 
 class MyApp extends StatelessWidget {
   final bool isNew;
@@ -59,11 +64,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData().copyWith(
-        inputDecorationTheme: const InputDecorationTheme(
-          floatingLabelStyle: TextStyle(color: Color(0xffa4392f)),
-        ),
-      ),
+      theme: customTheme,
       initialRoute: isNew ? 'welcomescreen' : 'homescreen',
       routes: {
         "welcomescreen": (context) => const WelcomeScreen(),

@@ -26,6 +26,41 @@ class BuildToDo extends StatefulWidget {
   State<BuildToDo> createState() => _BuildToDoState();
 }
 
+Future<void> removeItemFromCustomer(String customerId, String kodu) async {
+  try {
+    // Reference to the specific document in the 'customers' collection
+    DocumentReference customerDoc =
+        FirebaseFirestore.instance.collection('customers').doc(customerId);
+
+    // Retrieve the customer's current data
+    DocumentSnapshot customerSnapshot = await customerDoc.get();
+    Map<String, dynamic>? customerData =
+        customerSnapshot.data() as Map<String, dynamic>?;
+    Map<String, dynamic> items = customerData?['items'] ?? {};
+
+    // Find the item with the matching 'kodu'
+    String? itemIdToRemove;
+    items.forEach((itemId, itemData) {
+      if (itemData['kodu'] == kodu) {
+        itemIdToRemove = itemId;
+      }
+    });
+
+    if (itemIdToRemove != null) {
+      // Remove the item from Firestore
+      await customerDoc.update({
+        'items.$itemIdToRemove': FieldValue.delete(),
+      });
+
+      print('Item removed successfully!');
+    } else {
+      print('Item with kodu $kodu not found.');
+    }
+  } catch (e) {
+    print('Error removing item: $e');
+  }
+}
+
 Future<void> addItemToCustomer(
   String customerId,
   String kodu,
@@ -262,6 +297,9 @@ class _BuildToDoState extends State<BuildToDo> {
                             event['Yardage'], // Boolean for yardage
                             event['Name'], // Product name
                           );
+                        } else {
+                          removeItemFromCustomer(
+                              event['CustomerId'], event['Kodu']);
                         }
                       } catch (e) {
                         print("Error updating Firestore: $e");

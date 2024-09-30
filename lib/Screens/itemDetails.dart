@@ -319,8 +319,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
   Widget buildEditableCard(String label, TextEditingController controller) {
     return Card(
+      color: Colors.white,
       // color: Colors.white10,
-      elevation: 1,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -579,6 +580,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         return true; // Allows the pop to proceed after saving
       },
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(

@@ -74,14 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
       );
   }
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear all stored data
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
+  // Future<void> _logout(BuildContext context) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.clear(); // Clear all stored data
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => const LoginScreen()),
+  //   );
+  // }
 
   void _addEvent(String title, String description) async {
     final event = {
@@ -150,11 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
       try {
         QuerySnapshot snapshot =
             await FirebaseFirestore.instance.collection('customers').get();
-        setState(() {
-          customers =
-              snapshot.docs.map((doc) => doc['name'].toString()).toList();
-          customerIds = {for (var doc in snapshot.docs) doc['name']: doc.id};
-        });
+        customers = snapshot.docs.map((doc) => doc['name'].toString()).toList();
+        customerIds = {for (var doc in snapshot.docs) doc['name']: doc.id};
       } catch (e) {
         print('Error fetching customers: $e');
       }
@@ -163,33 +160,52 @@ class _HomeScreenState extends State<HomeScreen> {
     // Call fetchCustomers to load customer data
     fetchCustomers();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor:
+          Colors.black.withOpacity(0.65), // Make background transparent
       builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: AlertDialog(
-            scrollable: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-              side: const BorderSide(
-                color: Colors.grey,
-                width: 2.0,
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                top: 16.0,
+                left: 16.0,
+                right: 16.0,
               ),
-            ),
-            backgroundColor: const Color(0xffa4392f),
-            title: Text(
-              'Add Task',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              // height: 1600,
               child: StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
+                  return ListView(
+                    controller: scrollController,
                     children: [
+                      Row(
+                        children: [
+                          const Expanded(flex: 1, child: SizedBox()),
+                          Expanded(
+                              child: Container(
+                            height: 4,
+                            color: Colors.grey,
+                          )),
+                          const Expanded(child: SizedBox())
+                        ],
+                      ),
+                      SizedBox(
+                        height: 6,
+                      ),
+                      Center(
+                        child: Text(
+                          'Add Task',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white, fontSize: 18.0),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
@@ -265,21 +281,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           cursorColor: Colors.white,
                         ),
                       ] else ...[
-                        // Dropdown with fetched customers
                         DropdownButtonFormField<String>(
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Colors.white,
-                                width: 2.0,
-                              ),
+                              borderSide:
+                                  BorderSide(color: Colors.white, width: 2.0),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Colors.white12,
-                                width: 2.0,
-                              ),
+                              borderSide:
+                                  BorderSide(color: Colors.white12, width: 2.0),
                             ),
                           ),
                           dropdownColor: Colors.grey,
@@ -351,6 +362,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: TextField(
                                 controller: priceController,
                                 decoration: InputDecoration(
+                                  prefix: Text(
+                                    "\$ ",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                   labelText: 'Price',
                                   labelStyle:
                                       GoogleFonts.poppins(color: Colors.white),
@@ -365,12 +380,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 cursorColor: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 10),
                           ],
                         ),
-                        const SizedBox(
-                          height: 5,
-                        ),
+                        const SizedBox(height: 5),
                         Row(
                           children: [
                             Flexible(
@@ -378,11 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(
                                   'Hanger',
                                   style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                  overflow: TextOverflow
-                                      .visible, // Ensures text wraps to the next line
+                                      color: Colors.white, fontSize: 16),
                                 ),
                                 value: hanger,
                                 onChanged: (bool? value) {
@@ -393,8 +401,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 activeColor: Colors.white,
                                 checkColor: Colors.black,
                                 contentPadding: EdgeInsets.zero,
-                                controlAffinity: ListTileControlAffinity
-                                    .leading, // Checkbox at the start
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
                               ),
                             ),
                             Flexible(
@@ -402,11 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(
                                   'Yardage',
                                   style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                  overflow: TextOverflow
-                                      .visible, // Ensures text wraps to the next line
+                                      color: Colors.white, fontSize: 16),
                                 ),
                                 value: yardage,
                                 onChanged: (bool? value) {
@@ -417,69 +421,74 @@ class _HomeScreenState extends State<HomeScreen> {
                                 activeColor: Colors.white,
                                 checkColor: Colors.black,
                                 contentPadding: EdgeInsets.zero,
-                                controlAffinity: ListTileControlAffinity
-                                    .leading, // Checkbox at the start
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
                               ),
                             ),
                           ],
                         ),
                       ],
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.black,
+                                backgroundColor:
+                                    Colors.white, // Set the text color to black
+                                elevation:
+                                    0, // Optional: remove the shadow for a flat button look
+                              ),
+                              onPressed: () {
+                                if (!isGivingSample) {
+                                  _addEvent(
+                                    titleController.text,
+                                    descriptionController.text.isEmpty
+                                        ? ''
+                                        : descriptionController.text,
+                                  );
+                                } else {
+                                  _addSampleEvent(
+                                    selectedCustomer,
+                                    koduController.text,
+                                    nameController.text,
+                                    priceController.text,
+                                    yardage,
+                                    hanger,
+                                    selectedCustomerId, // Pass the customer document ID
+                                  );
+                                  _refreshEvents();
+                                }
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                'Add',
+                                style: GoogleFonts.poppins(color: Colors.black),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   );
                 },
               ),
-            ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Cancel',
-                        style: GoogleFonts.poppins(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!isGivingSample) {
-                          _addEvent(
-                            titleController.text,
-                            descriptionController.text.isEmpty
-                                ? ''
-                                : descriptionController.text,
-                          );
-                        } else {
-                          _addSampleEvent(
-                            selectedCustomer,
-                            koduController.text,
-                            nameController.text,
-                            priceController.text,
-
-                            yardage,
-                            hanger,
-                            selectedCustomerId, // Pass the customer document ID
-                          );
-                          _refreshEvents();
-                        }
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Add',
-                        style: GoogleFonts.poppins(color: Colors.black),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

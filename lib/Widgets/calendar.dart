@@ -145,19 +145,16 @@ class _CalendarPageState extends State<CalendarPage> {
           builder: (context, setState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(20.0), // Adjust the corner radius
-                side: const BorderSide(
-                  color: Colors.grey, // Border color
-                  width: 2.0, // Border width
-                ),
+                borderRadius: BorderRadius.circular(20.0),
               ),
-              backgroundColor:
-                  const Color(0xffa4392f), // Change the background color
+              backgroundColor: Colors.white, // Set background to white
               title: Text(
                 'Add Event',
                 style: GoogleFonts.poppins(
-                    color: Colors.white), // Title text color
+                  color: const Color(0xffa4392f), // Title color in red
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -167,19 +164,24 @@ class _CalendarPageState extends State<CalendarPage> {
                     decoration: InputDecoration(
                       labelText: 'Event',
                       labelStyle: GoogleFonts.poppins(
-                          color: Colors.white), // Title text color
-                      // Input label text color
+                        color: const Color(0xffa4392f), // Label color in red
+                      ),
                       enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
-                            color: Colors.white), // Input border color
+                          color: Color(0xffa4392f), // Border color in red
+                        ),
                       ),
                       focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
-                            color: Colors.white), // Focused input border color
+                          color:
+                              Color(0xffa4392f), // Focused border color in red
+                        ),
                       ),
                     ),
-                    style: GoogleFonts.poppins(color: Colors.white),
-                    cursorColor: Colors.white, // Input text color
+                    style: GoogleFonts.poppins(
+                      color: Colors.black, // Input text color in black
+                    ),
+                    cursorColor: const Color(0xffa4392f), // Cursor color in red
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -187,8 +189,9 @@ class _CalendarPageState extends State<CalendarPage> {
                       Text(
                         'Time:',
                         style: GoogleFonts.poppins(
-                            color: Colors.white), // Title text color
-                        // Text color
+                          color: const Color(0xffa4392f), // Text color in red
+                          fontSize: 16,
+                        ),
                       ),
                       TextButton(
                         onPressed: () async {
@@ -203,8 +206,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                         0xffa4392f), // Header background color
                                     onPrimary:
                                         Colors.white, // Header text color
-                                    onSurface: Color(0xffa4392f),
-                                    // Body text color
+                                    onSurface:
+                                        Color(0xffa4392f), // Body text color
                                   ),
                                   textButtonTheme: TextButtonThemeData(
                                     style: TextButton.styleFrom(
@@ -214,8 +217,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                   ),
                                   timePickerTheme: const TimePickerThemeData(
                                     dayPeriodTextColor: Colors.black,
-                                    dayPeriodColor: Color(0xbba4392f),
-                                    // AM/PM text color
+                                    dayPeriodColor:
+                                        Color(0xbba4392f), // AM/PM background
                                     dayPeriodShape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.all(Radius.circular(8)),
@@ -235,7 +238,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         child: Text(
                           selectedTime.format(context),
                           style: GoogleFonts.poppins(
-                              color: Colors.white), // Button text color
+                            color: const Color(
+                                0xffa4392f), // Button text color in red
+                          ),
                         ),
                       ),
                     ],
@@ -249,30 +254,38 @@ class _CalendarPageState extends State<CalendarPage> {
                     Expanded(
                       child: TextButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(); // Cancel action
                         },
                         child: Text(
                           'Cancel',
                           style: GoogleFonts.poppins(
-                              color: Colors.white), // Title text color
-                          // Button text color
+                            color: const Color(
+                                0xffa4392f), // Button text color in red
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
                           _addEvent(eventController.text, selectedTime);
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(); // Add action
                         },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(
+                              0xffa4392f), // Button background color in red
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                        ),
                         child: Text(
                           'Add',
                           style: GoogleFonts.poppins(
-                              color: Colors.black), // Title text color
-                          // Button text color
+                            color: Colors.white, // Button text color in white
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
