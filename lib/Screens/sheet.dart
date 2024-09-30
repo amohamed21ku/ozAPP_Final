@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -352,11 +354,25 @@ class _ordersSheetState extends State<ordersSheet> {
     List<Map<String, dynamic>> updatedGoods = [];
 
     for (int i = 0; i < _data.length; i++) {
+      double? quantity =
+          _data[i]['quantity'] != null ? _data[i]['quantity'].toDouble() : null;
+      double? unitPrice = _data[i]['unitPrice'] != null
+          ? _data[i]['unitPrice'].toDouble()
+          : null;
+      double? amount =
+          _data[i]['amount'] != null ? _data[i]['amount'].toDouble() : null;
+
+      // Check if both quantity and unitPrice are 0 while amount is not 0
+      if (quantity == 0 && unitPrice == 0 && amount != 0) {
+        quantity = null; // Assign null to represent an empty state
+        unitPrice = null; // Assign null to represent an empty state
+      }
+
       updatedGoods.add({
         'goods_descriptions': _data[i]['description'],
-        'quantity': _data[i]['quantity'], // Can be null if empty
-        'unit_price': _data[i]['unitPrice'], // Can be null if empty
-        'amount': _data[i]['amount'], // Can be null if empty
+        'quantity': quantity, // Can be null if empty
+        'unit_price': unitPrice, // Can be null if empty
+        'amount': amount, // Can be null if empty
         'index': i // Store the index to preserve order
       });
     }
@@ -394,6 +410,13 @@ class _ordersSheetState extends State<ordersSheet> {
             value['unit_price'] != null ? value['unit_price'].toDouble() : null;
         double? amount =
             value['amount'] != null ? value['amount'].toDouble() : null;
+
+// Check if quantity and unitPrice are both 0 and amount is not 0
+        if (quantity == 0 && unitPrice == 0 && amount != 0) {
+          quantity = null; // Assign null to represent an empty state
+          unitPrice = null; // Assign null to represent an empty state
+          // amount remains as it is
+        }
 
         // Add the fetched data in order
         _data.add({
