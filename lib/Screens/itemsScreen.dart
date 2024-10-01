@@ -468,10 +468,17 @@ class ItemsScreenState extends State<ItemsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0), // Rounded corners
+              ),
+              backgroundColor: Colors.white, // Background color
               title: Text(
                 'Select Columns to Display',
-                style: GoogleFonts.poppins(color: const Color(0xffa4392f)),
+                style: GoogleFonts.poppins(
+                  color: const Color(0xffa4392f), // Title color
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
               ),
               content: SizedBox(
                 width: double.maxFinite,
@@ -489,15 +496,17 @@ class ItemsScreenState extends State<ItemsScreen> {
                       key: Key(key),
                       title: Text(
                         key,
-                        style: GoogleFonts.poppins(color: Colors.black),
+                        style: GoogleFonts.poppins(
+                            color: Colors.black), // Checkbox title color
                       ),
                       value: columnVisibility[key],
                       onChanged: (bool? value) {
                         setState(() {
-                          columnVisibility[key] = value!;
+                          columnVisibility[key] = value!; // Update visibility
                         });
                       },
-                      activeColor: const Color(0xffa4392f),
+                      activeColor:
+                          const Color(0xffa4392f), // Checkbox active color
                     );
                   }).toList(),
                 ),
@@ -506,14 +515,17 @@ class ItemsScreenState extends State<ItemsScreen> {
                 TextButton(
                   child: Text(
                     'OK',
-                    style: GoogleFonts.poppins(color: const Color(0xffa4392f)),
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xffa4392f), // OK button color
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   onPressed: () {
                     setState(() {
-                      columnOrder = newColumnOrder;
+                      columnOrder = newColumnOrder; // Update column order
                     });
-                    saveColumnPreferences(); // Save preferences when the user confirms
-                    Navigator.of(context).pop();
+                    saveColumnPreferences(); // Save preferences
+                    Navigator.of(context).pop(); // Close dialog
                   },
                 ),
               ],
@@ -522,7 +534,7 @@ class ItemsScreenState extends State<ItemsScreen> {
         );
       },
     ).then((_) {
-      setState(() {});
+      setState(() {}); // Refresh state after dialog closes
     });
   }
 

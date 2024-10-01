@@ -47,16 +47,54 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Delete'),
-          content: const Text('Are you sure you want to delete this entry?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(20.0), // Rounded corners for the dialog
+          ),
+          backgroundColor: Colors.white, // Background color of the dialog
+          title: Text(
+            'Confirm Delete',
+            style: GoogleFonts.poppins(
+              color: const Color(0xffa4392f), // Title text color
+              fontWeight: FontWeight.bold, // Bold for emphasis
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete'),
+          ),
+          content: Text(
+            'Are you sure you want to delete this entry?',
+            style: GoogleFonts.poppins(
+              color: Colors.black87, // Content text color
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () =>
+                      Navigator.pop(context, false), // Cancel action
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      color:
+                          const Color(0xffa4392f), // 'Cancel' button text color
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () =>
+                      Navigator.pop(context, true), // Delete action
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(
+                        0xffa4392f), // 'Delete' button background color
+                  ),
+                  child: Text(
+                    'Delete',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white, // 'Delete' button text color
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -357,21 +395,46 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        Text(
-          'Previous Prices:',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xffa4392f),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Previous Prices:',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xffa4392f),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedPriceIndex = -1; // Reset the selected price index
+                  priceController.clear(); // Clear the price field
+                  dateController.clear(); // Clear the date field
+                });
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey,
+                backgroundColor: Colors.white, // Text color
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  'Unselect Price',
+                  style: GoogleFonts.poppins(color: Colors.grey),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 10),
         Table(
           columnWidths: {
-            0: FlexColumnWidth(1.5), // Price
-            1: FlexColumnWidth(2.2), // Date
-            2: FlexColumnWidth(1.5), // C/F
-            3: FlexColumnWidth(2), // Select (Radio Button)
+            0: const FlexColumnWidth(1.5), // Price
+            1: const FlexColumnWidth(2.2), // Date
+            2: const FlexColumnWidth(1.5), // C/F
+            3: const FlexColumnWidth(2), // Select (Radio Button)
           },
           border: TableBorder.all(color: Colors.grey),
           children: [
@@ -447,12 +510,14 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                       previousPrices[index]['price'].length),
                             ),
                           ),
-                          keyboardType: TextInputType.number,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
                           decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
                             prefix: Text("\$ "),
                             isDense: true,
-                            border: InputBorder.none,
-                            hintText: 'Enter price',
                           ),
                         ),
                       ),
@@ -477,9 +542,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                             controller:
                                 TextEditingController(text: priceEntry['date']),
                             decoration: const InputDecoration(
-                              isDense: true,
                               border: InputBorder.none,
-                              hintText: 'Select date',
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              isDense: true,
                             ),
                           ),
                         ),
@@ -507,9 +573,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                             ),
                           ),
                           decoration: const InputDecoration(
-                            isDense: true,
                             border: InputBorder.none,
-                            hintText: 'Enter C/F',
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            isDense: true,
                           ),
                         ),
                       ),
@@ -668,6 +735,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               const SizedBox(
                 height: 10,
               ),
+
               buildPreviousPricesTable(),
               const SizedBox(height: 20),
               // ElevatedButton(

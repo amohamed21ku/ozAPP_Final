@@ -641,111 +641,72 @@ class _VisibleActionsState extends State<VisibleActions> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               children: [
+                SizedBox(
+                  height: 5,
+                ),
+                // Add the button Here
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Expanded(
-                    //   child: ElevatedButton.icon(onPressed:  showAddItemBottomSheet(context,S), label: 'Add Item')
-                    // ),
-                    // Add the button Here
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          GsheetAPI(SelectedItems: widget.selectedItem)
-                              .ConfirmingGetFromGoogleSheet(context);
-                        },
-                        child: Row(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                GsheetAPI(SelectedItems: widget.selectedItem)
-                                    .ConfirmingGetFromGoogleSheet(context);
-                              },
-                              icon: const Icon(
-                                size: 20,
-                                Icons.cloud_download_rounded,
-                                color: Color(0xffa4392f),
-                              ),
-                            ),
-                            Text(
-                              'Get From Excel',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xffa4392f),
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    const Icon(Icons.numbers),
+                    const SizedBox(
+                      width: 2,
                     ),
-                    // Expanded(
-                    //   child: GestureDetector(
-                    //     onTap: GsheetAPI(SelectedItems: widget.selectedItem)
-                    //         .uploadDataToFirestore,
-                    //     child: Row(
-                    //       children: [
-                    //         IconButton(
-                    //           onPressed: () {
-                    //             setState(() {
-                    //               widget.edit = !widget.edit;
-                    //             });
-                    //           },
-                    //           icon: const Icon(
-                    //             size: 20,
-                    //             Icons.edit,
-                    //             color: Color(0xffa4392f),
-                    //           ),
-                    //         ),
-                    //         Text(
-                    //           'Edit Mode',
-                    //           style: GoogleFonts.poppins(
-                    //             color: const Color(0xffa4392f),
-                    //             fontSize: 14,
-                    //           ),
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
+                    Text(
+                      'Item Count: ${widget.filteredList.length}',
+                      style: GoogleFonts.poppins(
+                          color: Colors.black, fontSize: 14),
+                    ),
                   ],
                 ),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(Icons.numbers),
-                          const SizedBox(
-                            width: 2,
+                      child: TextButton(
+                        onPressed: () {
+                          GsheetAPI(SelectedItems: widget.selectedItem)
+                              .ConfirmingGetFromGoogleSheet(context);
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.black,
+                          backgroundColor: Colors.white, // Text color
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.cloud_download_rounded),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              Text(
+                                'Get From Excel',
+                                style: GoogleFonts.poppins(color: Colors.black),
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Item Count: ${widget.filteredList.length}',
-                            style: GoogleFonts.poppins(
-                                color: Colors.black, fontSize: 14),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: widget.showColumnSelector,
+                    TextButton(
+                      onPressed: widget.showColumnSelector,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        backgroundColor: Colors.white, // Text color
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: Row(
                           children: [
-                            IconButton(
-                              onPressed: widget.showColumnSelector,
-                              icon: const Icon(
-                                size: 20,
-                                Icons.view_column,
-                                color: Color(0xffa4392f),
-                              ),
+                            const Icon(Icons.list_alt),
+                            const SizedBox(
+                              width: 4,
                             ),
                             Text(
                               'Select Columns',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xffa4392f),
-                                fontSize: 14,
-                              ),
+                              style: GoogleFonts.poppins(color: Colors.black),
                             ),
                           ],
                         ),

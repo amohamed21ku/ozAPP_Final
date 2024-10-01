@@ -197,38 +197,60 @@ class _BuildToDoState extends State<BuildToDo> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      20.0), // Rounded corners for the dialog
+                ),
+                backgroundColor: Colors.white, // Background color of the dialog
                 title: Text(
                   'Confirm Delete',
                   style: GoogleFonts.poppins(
-                    color: const Color(0xffa4392f),
+                    color: const Color(0xffa4392f), // Title text color
+                    fontWeight:
+                        FontWeight.bold, // Optional bold styling for emphasis
                   ),
                 ),
                 content: Text(
                   'Do you want to delete this Task?',
-                  style: GoogleFonts.poppins(),
+                  style: GoogleFonts.poppins(
+                    color: Colors
+                        .black87, // Content text color (you can adjust this if needed)
+                  ),
                 ),
                 actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                    child: Text(
-                      'No',
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xffa4392f),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pop(false); // Close dialog with 'No' response
+                        },
+                        child: Text(
+                          'No',
+                          style: GoogleFonts.poppins(
+                            color: const Color(
+                                0xffa4392f), // 'No' button text color
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                    child: Text(
-                      'Yes',
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xffa4392f),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pop(true); // Close dialog with 'Yes' response
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(
+                              0xffa4392f), // 'Yes' button background color
+                        ),
+                        child: Text(
+                          'Yes',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white, // 'Yes' button text color
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               );
