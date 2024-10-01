@@ -630,9 +630,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           .collection(widget.SelectedItems)
           .doc(widget.item['id'])
           .delete();
-      ItemsScreenState.filteredList.removeAt(0);
+      GsheetAPI(SelectedItems: widget.SelectedItems).uploadDataToGoogleSheet();
       // print(widget.item);
-      print(ItemsScreenState.filteredList);
     } catch (e) {
       // print('Error deleting item: $e');
       // Handle error if deletion fails

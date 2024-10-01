@@ -610,14 +610,14 @@ class CustomItems extends StatelessWidget {
 class VisibleActions extends StatefulWidget {
   final bool isVisible;
   final String selectedItem;
-  final List<dynamic> filteredList;
+  int ItemCount;
   final VoidCallback showColumnSelector;
 
   VisibleActions({
     super.key,
     required this.isVisible,
     required this.selectedItem,
-    required this.filteredList,
+    required this.ItemCount,
     required this.showColumnSelector,
   });
 
@@ -653,7 +653,7 @@ class _VisibleActionsState extends State<VisibleActions> {
                       width: 2,
                     ),
                     Text(
-                      'Item Count: ${widget.filteredList.length}',
+                      'Item Count: ${widget.ItemCount}',
                       style: GoogleFonts.poppins(
                           color: Colors.black, fontSize: 14),
                     ),

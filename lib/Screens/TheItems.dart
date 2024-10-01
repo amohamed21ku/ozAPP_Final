@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../Widgets/components.dart';
-import '../models/GsheetAPI.dart';
 
 class Theitems extends StatefulWidget {
+  final int ItemCount;
   bool isSearching;
   final bool isLoading;
   bool isVisible;
@@ -37,6 +37,7 @@ class Theitems extends StatefulWidget {
     required this.loadColumnPreferences,
     required this.fetchDataForSelectedItem,
     required this.showColumnSelector,
+    required this.ItemCount,
   });
 
   @override
@@ -51,7 +52,7 @@ class _TheitemsState extends State<Theitems> {
         VisibleActions(
             isVisible: widget.isVisible,
             selectedItem: widget.selectedItem,
-            filteredList: widget.filteredList,
+            ItemCount: widget.ItemCount,
             showColumnSelector: widget.showColumnSelector),
         GestureDetector(
           onVerticalDragUpdate: (details) {

@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:gsheets/gsheets.dart';
 import 'package:intl/intl.dart';
 import 'package:oz/Screens/itemsScreen.dart';
-import 'package:collection/collection.dart';
 
 class GsheetAPI {
   final String SelectedItems;
@@ -116,221 +115,233 @@ class GsheetAPI {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  // Function to deeply compare two maps (ignores key order)
-  bool areMapsEqual(Map<String, dynamic>? map1, Map<String, dynamic>? map2) {
-    if (map1 == null || map2 == null) return map1 == map2; // Null checks
-    if (map1.length != map2.length) return false; // Check if sizes match
-
-    for (var key in map1.keys) {
-      if (!map2.containsKey(key)) return false; // Check if key exists in both
-
-      var val1 = map1[key];
-      var val2 = map2[key];
-
-      // Compare the values
-      if (val1 is Map && val2 is Map) {
-        if (!areMapsEqual(
-            val1 as Map<String, dynamic>, val2 as Map<String, dynamic>)) {
-          return false; // Recursively compare maps
-        }
-      } else if (val1 != val2) {
-        return false; // Values are different
-      }
-    }
-    return true;
-  }
-
-  Future<void> uploadDataToFirestoreWithDeltaSync() async {
+  Future<void> checkingSimilarity(BuildContext context) async {
     final sheetData = await fetchSheetData();
     final firestoreData = await fetchFirestoreData();
 
-// Convert both sheetData and firestoreData into maps using 'Kodu' as the key for comparison
+    // Map Firestore data for easy comparison using 'Kodu' as the key
+    final firestoreDataMap = {
+      for (var docId in firestoreData.keys)
+        firestoreData[docId]['Kodu']: firestoreData[docId]
+    };
+
+    // Map Google Sheets data for easy comparison using 'Kodu' as the key
     final sheetDataMap = {
       for (var item in sheetData)
         if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
           item['Kodu']: item
     };
 
-    // final firestoreDataMap = {
-    //   for (var item in firestoreData.keys)
-    //     if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
-    //       item['Kodu']: item
-    // };
-
+    bool identical = true;
     bool hasChanges = false;
+    List<String> changes = [];
+    List<String> missingInFirestore = [];
+    List<String> missingInSheet = [];
 
-// Check for changes in both directions
-    for (var kod in sheetDataMap.keys) {
-      var sheetItem = sheetDataMap[kod];
-      var firestoreItem = firestoreDataMap[kod];
+    // Compare sheet data with Firestore data
+    for (var kodu in sheetDataMap.keys) {
+      final sheetItem = sheetDataMap[kodu];
+      final firestoreItem = firestoreDataMap[kodu];
 
-      // If item is not found in Firestore data, it's a new item in sheetData
       if (firestoreItem == null) {
-        print('New item in sheetData: $sheetItem');
-        hasChanges = true;
+        missingInFirestore.add(kodu);
+        identical = false;
         continue;
       }
 
-      // Compare fields safely using null-aware operators
-      if (sheetItem?['Kodu'] != firestoreItem?['Kodu'] ||
-          sheetItem?['Kalite'] != firestoreItem?['Kalite'] ||
-          sheetItem?['Eni'] != firestoreItem?['Eni'] ||
-          sheetItem?['Gramaj'] != firestoreItem?['Gramaj'] ||
-          sheetItem?['Supplier'] != firestoreItem?['Supplier'] ||
-          sheetItem?['Item No'] != firestoreItem?['Item No'] ||
-          sheetItem?['Item Name'] != firestoreItem?['Item Name'] ||
-          sheetItem?['Price'] != firestoreItem?['Price'] ||
-          sheetItem?['Date'] != firestoreItem?['Date'] ||
-          sheetItem?['NOT'] != firestoreItem?['NOT'] ||
-          sheetItem?['Previous_Prices']?.toString() != firestoreItem?['Previous_Prices']?.toString() ||
-          (this.SelectedItems == 'Naylon' && sheetItem?['Composition'] != firestoreItem?['Composition'])) {
-        print('Changes detected for item $kod');
-        print('SheetData: $sheetItem');
-        print('FirestoreData: $firestoreItem');
+      // Function to compare the Previous_Prices list of maps
+      bool comparePreviousPrices(
+          List<dynamic>? sheetPrices, List<dynamic>? firestorePrices) {
+        if (sheetPrices == null || sheetPrices.isEmpty)
+          return firestorePrices == null || firestorePrices.isEmpty;
+        if (firestorePrices == null || firestorePrices.isEmpty) return false;
+        if (sheetPrices.length != firestorePrices.length) return false;
+
+        for (int i = 0; i < sheetPrices.length; i++) {
+          final sheetPrice = sheetPrices[i];
+          final firestorePrice = firestorePrices[i];
+
+          if (sheetPrice['price'] != firestorePrice['price'] ||
+              sheetPrice['date'] != firestorePrice['date'] ||
+              sheetPrice['C/F'] != firestorePrice['C/F']) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // Check field by field for changes
+      if (sheetItem?['Kodu'] != firestoreItem['Kodu'] ||
+          sheetItem?['Kalite'] != firestoreItem['Kalite'] ||
+          sheetItem?['Eni'] != firestoreItem['Eni'] ||
+          sheetItem?['Gramaj'] != firestoreItem['Gramaj'] ||
+          sheetItem?['Supplier'] != firestoreItem['Supplier'] ||
+          sheetItem?['Item No'] != firestoreItem['Item No'] ||
+          sheetItem?['Item Name'] != firestoreItem['Item Name'] ||
+          sheetItem?['Price'] != firestoreItem['Price'] ||
+          sheetItem?['Date'] != firestoreItem['Date'] ||
+          sheetItem?['NOT'] != firestoreItem['NOT'] ||
+          !comparePreviousPrices(sheetItem?['Previous_Prices'],
+              firestoreItem['Previous_Prices']) ||
+          (this.SelectedItems == 'Naylon' &&
+              sheetItem?['Composition'] != firestoreItem['Composition'])) {
+        changes.add(kodu);
         hasChanges = true;
+        identical = false;
       }
     }
 
-// Check for items in Firestore that are missing from sheetData
-    for (var kod in firestoreDataMap.keys) {
-      if (!sheetDataMap.containsKey(kod)) {
-        print('Item missing in sheetData but exists in Firestore: ${firestoreDataMap[kod]}');
-        hasChanges = true;
+    // Check if Firestore has items not present in the sheet
+    for (var kodu in firestoreDataMap.keys) {
+      if (!sheetDataMap.containsKey(kodu)) {
+        missingInSheet.add(kodu);
+        identical = false;
       }
     }
 
-    if (!hasChanges) {
-      print("No changes detected");
+    if (identical && !hasChanges) {
+      // Show Snackbar if identical
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google Sheets and App data are identical!')),
+      );
+    } else {
+      // Build a list of discrepancies
+      String message = '';
+
+// Create text spans for each part of the message
+      List<TextSpan> messageSpans = [];
+
+      if (changes.isNotEmpty) {
+        messageSpans.add(
+          TextSpan(
+            text: 'Updated Items:-\n', // Bold label
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+        );
+        messageSpans.add(
+          TextSpan(
+            text: '${changes.join(", ")}\n', // Normal text
+            style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+          ),
+        );
+      }
+
+      if (missingInFirestore.isNotEmpty) {
+        messageSpans.add(
+          TextSpan(
+            text: 'Added Items:-\n', // Bold label
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+        );
+        messageSpans.add(
+          TextSpan(
+            text: '${missingInFirestore.join(", ")}\n', // Normal text
+            style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+          ),
+        );
+      }
+
+      if (missingInSheet.isNotEmpty) {
+        messageSpans.add(
+          TextSpan(
+            text: 'Deleted Items:-\n', // Bold label
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+        );
+        messageSpans.add(
+          TextSpan(
+            text: '${missingInSheet.join(", ")}\n', // Normal text
+            style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+          ),
+        );
+      }
+
+// Display the message in an AlertDialog using Text.rich
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(
+              'Data Discrepancies',
+              style: GoogleFonts.poppins(
+                color: const Color(0xffa4392f),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: SingleChildScrollView(
+              child: RichText(
+                text: TextSpan(
+                  children: messageSpans, // Add the spans to RichText
+                  style:
+                      GoogleFonts.poppins(color: Colors.black), // Default style
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                },
+              ),
+              TextButton(
+                child: Text(
+                  'Continue',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xffa4392f),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await uploadDataToFirestore(); // Continue action
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
-
-
-    //
-    // // Convert the map values to sets for comparison (ignoring order)
-    // final firestoreDataSet = firestoreData.values.toSet();
-    // final sheetDataSet = sheetDataMap.values.toSet();
-    //
-    // // 1. Entries present in both but with different values (ignoring order)
-    // final discrepancies = <String, Map<String, dynamic>>{};
-    // for (var key in sheetDataMap.keys) {
-    //   if (firestoreData.containsKey(key)) {
-    //     if (!areMapsEqual(sheetDataMap[key] as Map<String, dynamic>?,
-    //         firestoreData[key] as Map<String, dynamic>?)) {
-    //       discrepancies[key] = {
-    //         'sheetData': sheetDataMap[key],
-    //         'firestoreData': firestoreData[key]
-    //       };
-    //     }
-    //   }
-    // }
-    //
-    // // 2. Check if data in both maps are identical
-    // final missingFromFirestore = sheetDataSet.difference(firestoreDataSet);
-    // final missingFromSheet = firestoreDataSet.difference(sheetDataSet);
-    // bool areIdentical = missingFromFirestore.isEmpty &&
-    //     missingFromSheet.isEmpty &&
-    //     discrepancies.isEmpty;
-    //
-    // // Output the results as before
-    // print("===== Data Comparison Summary =====");
-    //
-    // // Discrepancies output
-    // if (discrepancies.isNotEmpty) {
-    //   print("\nEntries with discrepancies (ignoring key order):");
-    //   for (var key in discrepancies.keys) {
-    //     print("- Key: $key");
-    //     print("  Google Sheets Value: ${discrepancies[key]?['sheetData']}");
-    //     print("  Firestore Value: ${discrepancies[key]?['firestoreData']}");
-    //   }
-    // }
-    //
-    // // Missing entries output
-    // if (missingFromFirestore.isNotEmpty) {
-    //   print("\nEntries present in Google Sheets but missing from Firestore:");
-    //   for (var entry in missingFromFirestore) {
-    //     print("- Missing in Firestore: $entry");
-    //   }
-    // }
-    //
-    // if (missingFromSheet.isNotEmpty) {
-    //   print("\nEntries present in Firestore but missing from Google Sheets:");
-    //   for (var entry in missingFromSheet) {
-    //     print("- Missing in Sheets: $entry");
-    //   }
-    // }
-    //
-    // // Final identical check
-    // if (areIdentical) {
-    //   print("\nResult: The data in Firestore and Google Sheets are identical.");
-    // } else {
-    //   print(
-    //       "\nResult: The data in Firestore and Google Sheets are not identical.");
-    // }
   }
 
-//
-  // // Step 2: Identify added, updated, and deleted items
-  // List<Map<String, dynamic>> addedItems = [];
-  // List<Map<String, dynamic>> updatedItems = [];
-  // List<String> deletedItems = [];
-  //
-  // // Find items to be added or updated
-  // sheetDataMap.forEach((docId, item) {
-  //   if (!firestoreDataMap.containsKey(docId)) {
-  //     // Item is new (not in Firestore)
-  //     addedItems.add(item);
-  //   } else {
-  //     // Item exists in Firestore, check if it has changed
-  //     final firestoreItem = firestoreDataMap[docId];
-  //     if (hasItemChanged(firestoreItem, item)) {
-  //       updatedItems.add(item);
-  //     }
-  //   }
-  // });
-  //
-  // // Find items to be deleted
-  // firestoreDataMap.forEach((docId, _) {
-  //   if (!sheetDataMap.containsKey(docId)) {
-  //     deletedItems.add(docId);
-  //   }
-  // });
-  //
-  // // Step 3: Apply changes
-  // final batch = firestore.batch();
-  //
-  // // Add new items
-  // for (var item in addedItems) {
-  //   final docRef = firestore.collection(SelectedItems).doc(item['Kodu']);
-  //   batch.set(docRef, item);
-  // }
-  //
-  // // Update modified items
-  // for (var item in updatedItems) {
-  //   final docRef = firestore.collection(SelectedItems).doc(item['Kodu']);
-  //   batch.update(docRef, item);
-  // }
-  //
-  // // Delete removed items
-  // for (var docId in deletedItems) {
-  //   final docRef = firestore.collection(SelectedItems).doc(docId);
-  //   batch.delete(docRef);
-  // }
-  //
-  // // Commit the batch
-  // await batch.commit();
-  // print('Delta Synchronization Complete');
-
-// Helper function to check if an item has changed (compare each field)
-  bool hasItemChanged(
-      Map<String, dynamic> firestoreItem, Map<String, dynamic> sheetItem) {
-    for (var key in sheetItem.keys) {
-      if (firestoreItem[key] != sheetItem[key]) {
-        return true; // Item has changed
-      }
-    }
-    return false;
+  Future<void> addingNewItem(
+      {required kodu,
+      required itemName,
+      required eni,
+      required gramaj,
+      required price,
+      required date,
+      required supplier,
+      required kalite,
+      required not,
+      required itemNo,
+      composition}) async {
+    await init();
+    final newItem = {
+      'Kodu': kodu,
+      'Item Name': itemName,
+      'Eni': eni,
+      'Gramaj': gramaj,
+      'Price': price,
+      'Date': date,
+      'Supplier': supplier,
+      'Kalite': kalite,
+      'NOT': not,
+      'Item No': itemNo,
+      'Previous_Prices': [],
+      if (this.SelectedItems == 'Naylon') 'Composition': composition,
+    };
+    await worksheet!.values.appendRow(newItem.values.toList());
   }
 
-  Future<void> uploadDataToFirestore(BuildContext context) async {
+// NEED THIS ...
+  Future<void> uploadDataToFirestore() async {
     final firestore = FirebaseFirestore.instance;
     final sheetData = await fetchSheetData();
     final firestoreData = await fetchFirestoreData();
@@ -340,43 +351,16 @@ class GsheetAPI {
       return DateTime(1899, 12, 30).add(Duration(days: serial.toInt()));
     }
 
-    // Convert sheet data into a map for easy comparison
     final sheetDataMap = {
       for (var item in sheetData)
         if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
           item['Kodu']: {
             ...item,
+            // Check if there's a date and if it is a number, convert it to proper date format
             if (item['Date'] != null && item['Date'] is double)
               'Date': convertSerialToDate(item['Date']).toIso8601String(),
           }
     };
-
-    // Compare Firestore and Sheet data
-    bool hasChanges = false;
-
-    // Check for changes (documents present in Firestore but not in sheetDataMap)
-    firestoreData.forEach((docId, firestoreItem) {
-      if (!sheetDataMap.containsKey(docId) ||
-          !MapEquality().equals(sheetDataMap[docId], firestoreItem)) {
-        hasChanges = true;
-      }
-    });
-
-    // Check for new or updated data in sheetDataMap
-    sheetDataMap.forEach((docId, sheetItem) {
-      if (!firestoreData.containsKey(docId) ||
-          !MapEquality().equals(firestoreData[docId], sheetItem)) {
-        hasChanges = true;
-      }
-    });
-
-    // If no changes detected, show a snackbar
-    if (!hasChanges) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No changes detected.')),
-      );
-      return; // Exit the function without uploading
-    }
 
     // Start a batch for Firestore writes
     final batch = firestore.batch();
@@ -392,6 +376,7 @@ class GsheetAPI {
     // Add or update documents in Firestore based on the sheet data
     sheetDataMap.forEach((docId, item) {
       final docRef = firestore.collection(SelectedItems).doc(docId);
+      // Filter out any fields that are null or empty
       final cleanedItem = Map<String, dynamic>.from(item)
         ..removeWhere(
             (key, value) => key == null || key.isEmpty || value == null);
@@ -401,13 +386,6 @@ class GsheetAPI {
 
     // Commit the batch
     await batch.commit();
-    final updatedFirestoreData = await fetchFirestoreData();
-    ItemsScreenState.filteredList =
-        updatedFirestoreData as List<Map<String, dynamic>>;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Data uploaded successfully.')),
-    );
   }
 
   Future<void> ConfirmingGetFromGoogleSheet(BuildContext context) async {
@@ -423,7 +401,7 @@ class GsheetAPI {
           title: Text(
             'Warning !!',
             style: GoogleFonts.poppins(
-              color: const Color(0xffa4392f), // Red text for the warning
+              color: Color(0xffa4392f), // Red text for the warning
               fontWeight: FontWeight.bold,
               fontSize: 20.0,
             ),
@@ -455,8 +433,8 @@ class GsheetAPI {
               child: Text(
                 'Continue',
                 style: GoogleFonts.poppins(
-                  color: const Color(
-                      0xffa4392f), // Green color for the continue button
+                  color:
+                      Color(0xffa4392f), // Green color for the continue button
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -468,7 +446,7 @@ class GsheetAPI {
 
     // If user confirmed, call the function to upload data to Firestore
     if (shouldContinue == true) {
-      await uploadDataToFirestoreWithDeltaSync();
+      await checkingSimilarity(context);
     }
   }
 

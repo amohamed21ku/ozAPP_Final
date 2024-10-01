@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:oz/models/GsheetAPI.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/components.dart';
-import '../models/GsheetAPI.dart';
 import 'TheItems.dart';
 
 class ItemsScreen extends StatefulWidget {
@@ -24,11 +24,12 @@ class ItemsScreenState extends State<ItemsScreen> {
 
   List<Map<String, dynamic>> dataList = [];
   static List<Map<String, dynamic>> filteredList = [];
+  int ItemCount = filteredList.length;
+
   List<Map<String, dynamic>> itemsToDelete = [];
   bool isSearching = false; // Track whether the search bar is active
 
   TextEditingController searchController = TextEditingController();
-  late StreamSubscription<QuerySnapshot> _firestoreSubscription;
 
   void _showAddItemBottomSheet(BuildContext context, String selectedItem) {
     // Create controllers for each field
@@ -254,6 +255,10 @@ class ItemsScreenState extends State<ItemsScreen> {
                                       ? compositionController.text
                                       : '',
                                 );
+
+                                GsheetAPI(SelectedItems: selectedItem)
+                                    .uploadDataToGoogleSheet();
+                                fetchDataForSelectedItem();
                                 Navigator.pop(
                                     context); // Close the bottom sheet
                               },
@@ -388,7 +393,6 @@ class ItemsScreenState extends State<ItemsScreen> {
   @override
   void dispose() {
     // Cancel the Firestore listener when the widget is disposed
-    _firestoreSubscription.cancel();
     searchController.dispose();
     super.dispose();
   }
@@ -397,6 +401,7 @@ class ItemsScreenState extends State<ItemsScreen> {
   @override
   void initState() {
     super.initState();
+
     loadColumnPreferences();
     fetchDataFromCache();
     // Listen to changes in the search input
@@ -405,27 +410,28 @@ class ItemsScreenState extends State<ItemsScreen> {
     });
 
     // Start listening to Firestore changes
-    listenToFirestoreChanges();
+    // listenToFirestoreChanges();
+    fetchDataForSelectedItem();
   }
 
-  void listenToFirestoreChanges() {
-    _firestoreSubscription = FirebaseFirestore.instance
-        .collection(selectedItem)
-        .snapshots()
-        .listen((snapshot) {
-      setState(() {
-        dataList = snapshot.docs.map((doc) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          data['Kodu'] = doc.id;
-          return data;
-        }).toList();
-
-        // Ensure dataList is sorted
-        dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
-        filteredList = List.from(dataList);
-      });
-    });
-  }
+  // void listenToFirestoreChanges() {
+  //   _firestoreSubscription = FirebaseFirestore.instance
+  //       .collection(selectedItem)
+  //       .snapshots()
+  //       .listen((snapshot) {
+  //     setState(() {
+  //       dataList = snapshot.docs.map((doc) {
+  //         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  //         data['Kodu'] = doc.id;
+  //         return data;
+  //       }).toList();
+  //
+  //       // Ensure dataList is sorted
+  //       dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
+  //       filteredList = List.from(dataList);
+  //     });
+  //   });
+  // }
 
   Future<void> fetchDataForSelectedItem() async {
     setState(() {
@@ -450,6 +456,7 @@ class ItemsScreenState extends State<ItemsScreen> {
       setState(() {
         filteredList = List.from(dataList); // Update the filtered list
         isLoading = false;
+        ItemCount = isSearching ? filteredList.length : dataList.length;
       });
     } catch (e) {
       setState(() {
@@ -621,88 +628,10 @@ class ItemsScreenState extends State<ItemsScreen> {
     });
   }
 
-  // DateTime excelSerialDateToDateTime(int serialDate) {
-  //   return DateTime(1899, 12, 30).add(Duration(days: serialDate));
-  // }
-
   String formatDateString(DateTime date) {
     final DateFormat formatter = DateFormat('dd-MMM-yy');
     return formatter.format(date);
   }
-
-  // Future<void> saveChangesToFirebase() async {
-  //   print("fa: ${filteredList}");
-  //   WriteBatch batch = FirebaseFirestore.instance.batch();
-  //
-  //   try {
-  //     for (int i = 0; i < filteredList.length; i++) {
-  //       // Update existing item in Firebase
-  //       DocumentReference oldDocRef = FirebaseFirestore.instance
-  //           .collection(selectedItem)
-  //           .doc(filteredList[i]['documentId']);
-  //       DocumentReference newDocRef = FirebaseFirestore.instance
-  //           .collection(selectedItem)
-  //           .doc(filteredList[i]['Kodu']);
-  //
-  //       if (filteredList[i]['documentId'] != filteredList[i]['Kodu']) {
-  //         // If Kodu has changed, copy to a new document and delete the old one
-  //         batch.set(newDocRef, {
-  //           'Kodu': filteredList[i]['Kodu'],
-  //           'Item Name': filteredList[i]['Item Name'],
-  //           'Eni': filteredList[i]['Eni'],
-  //           'Gramaj': filteredList[i]['Gramaj'],
-  //           'Price': filteredList[i]['Price'],
-  //           'Date': filteredList[i]['Date'],
-  //           'Kalite': filteredList[i]['Kalite'],
-  //           'Item No': filteredList[i]['Item No'],
-  //           'NOT': filteredList[i]['NOT'],
-  //           'Supplier': filteredList[i]['Supplier'],
-  //           'Previous_Prices': filteredList[i]['Previous_Prices'],
-  //         });
-  //         batch.delete(oldDocRef);
-  //
-  //         // Update the documentId in the local list
-  //         filteredList[i]['documentId'] = filteredList[i]['Kodu'];
-  //       } else {
-  //         // If Kodu has not changed, just update the existing document
-  //         batch.update(oldDocRef, {
-  //           'Kodu': filteredList[i]['Kodu'],
-  //           'Item Name': filteredList[i]['Item Name'],
-  //           'Eni': filteredList[i]['Eni'],
-  //           'Gramaj': filteredList[i]['Gramaj'],
-  //           'Price': filteredList[i]['Price'],
-  //           'Date': filteredList[i]['Date'],
-  //           'Kalite': filteredList[i]['Kalite'],
-  //           'Item No': filteredList[i]['Item No'],
-  //           'NOT': filteredList[i]['NOT'],
-  //           'Supplier': filteredList[i]['Supplier'],
-  //           'Previous_Prices': filteredList[i]['Previous_Prices'],
-  //         });
-  //       }
-  //     }
-  //
-  //     for (var item in itemsToDelete) {
-  //       DocumentReference docRef = FirebaseFirestore.instance
-  //           .collection(selectedItem)
-  //           .doc(item['documentId']);
-  //       batch.delete(docRef);
-  //     }
-  //
-  //     itemsToDelete.clear();
-  //
-  //     await batch.commit();
-  //     await saveDataToSharedPreferences();
-  //     await GsheetAPI(SelectedItems: selectedItem).uploadDataToGoogleSheet();
-  //
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Data Saved')),
-  //     );
-  //   } catch (e) {
-  //     // print('Error saving changes: $e');
-  //   } finally {
-  //     // setState(() => isLoading = false);
-  //   }
-  // }
 
   Future<void> saveDataToSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -846,6 +775,7 @@ class ItemsScreenState extends State<ItemsScreen> {
             loadColumnPreferences: loadColumnPreferences,
             fetchDataForSelectedItem: fetchDataForSelectedItem,
             showColumnSelector: showColumnSelector,
+            ItemCount: ItemCount,
           ),
           CustomItems(
             SelectedItems: selectedItem,
@@ -865,11 +795,6 @@ class ItemsScreenState extends State<ItemsScreen> {
           )
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     _showAddItemBottomSheet(context, selectedItem);
-      //   },
-      // ),
     );
   }
 }
