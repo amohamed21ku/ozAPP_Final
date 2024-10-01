@@ -308,13 +308,23 @@ class _ordersSheetState extends State<ordersSheet> {
             (field == 'quantity' || field == 'unitPrice' || field == 'amount')
                 ? TextInputType.number
                 : TextInputType.text,
-        style: GoogleFonts.poppins(fontSize: 12),
+        style: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: (field == 'amount' || field == "description")
+              ? FontWeight.w500
+              : FontWeight.w300,
+          color: (field == 'amount' && _data[index]['amount'] < 0)
+              ? Colors.red // Change color to red if amount is negative
+              : Colors.black, // Default color for other cases
+        ),
         cursorColor: const Color(0xffa4392f),
         textAlign: TextAlign.center,
         decoration: InputDecoration(
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
           border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
           prefixText: field == 'unitPrice'
               ? '\$'
               : (field == 'amount')
@@ -331,7 +341,6 @@ class _ordersSheetState extends State<ordersSheet> {
               _amountControllers[index].text =
                   _data[index]['amount'].toStringAsFixed(2);
             } else if (field == 'amount') {
-              // Amount should also be parsed to double
               _data[index]['amount'] = double.tryParse(value) ?? 0.0;
             } else {
               _data[index][field] = value;
