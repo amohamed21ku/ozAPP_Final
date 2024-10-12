@@ -128,15 +128,25 @@ class InfoCard extends StatelessWidget {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0), // Rounded corners
+                ),
+                backgroundColor: Colors.white, // Background color
                 title: Text(
                   'Confirm Delete',
                   style: GoogleFonts.poppins(
-                    color: const Color(0xffa4392f), // Specify the color
+                    color: const Color(
+                        0xffa4392f), // Title color (primary theme color)
+                    fontWeight: FontWeight.bold, // Bold to emphasize importance
+                    fontSize: 20.0, // Title font size
                   ),
                 ),
                 content: Text(
                   'Do you want to delete this customer?',
-                  style: GoogleFonts.poppins(), // Use default Poppins style
+                  style: GoogleFonts.poppins(
+                    color: Colors.black, // Standard black text for content
+                    fontSize: 16.0, // Adjust font size for readability
+                  ),
                 ),
                 actions: [
                   TextButton(
@@ -146,7 +156,9 @@ class InfoCard extends StatelessWidget {
                     child: Text(
                       'No',
                       style: GoogleFonts.poppins(
-                        color: const Color(0xffa4392f), // Specify the color
+                        color: Colors.grey, // Grey color for cancel button
+                        fontWeight:
+                            FontWeight.w600, // Slightly bold for visibility
                       ),
                     ),
                   ),
@@ -157,7 +169,10 @@ class InfoCard extends StatelessWidget {
                     child: Text(
                       'Yes',
                       style: GoogleFonts.poppins(
-                        color: const Color(0xffa4392f), // Specify the color
+                        color: const Color(
+                            0xffa4392f), // Primary color for confirm button
+                        fontWeight:
+                            FontWeight.w600, // Slightly bold for emphasis
                       ),
                     ),
                   ),

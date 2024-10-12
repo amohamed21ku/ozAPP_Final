@@ -310,6 +310,17 @@ class GsheetAPI {
     }
   }
 
+  Future<Map<dynamic, Map<String, dynamic>>> returningsheetdata() async {
+    final sheetData = await fetchSheetData();
+
+    final sheetDataMap = {
+      for (var item in sheetData)
+        if (item['Kodu'] != null && item['Kodu'].toString().isNotEmpty)
+          item['Kodu']: item
+    };
+    return sheetDataMap;
+  }
+
   Future<void> addingNewItem(
       {required kodu,
       required itemName,

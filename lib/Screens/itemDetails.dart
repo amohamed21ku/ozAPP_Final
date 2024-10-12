@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../models/GsheetAPI.dart';
-import 'itemsScreen.dart';
 
 class ItemDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> item;
@@ -36,6 +34,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   TextEditingController dateController = TextEditingController();
   TextEditingController NOTController = TextEditingController();
   TextEditingController CompositionController = TextEditingController();
+  late Future<Map<dynamic, Map<String, dynamic>>> old_previous;
 
   int _selectedPriceIndex = 0; // Default to the first entry
 
@@ -146,7 +145,13 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     dateController.text = widget.item['Date'] ?? '';
     NOTController.text = widget.item['NOT'] ?? '';
 
-    previousPrices = widget.item['Previous_Prices'] ?? [];
+    // Deep copy of Previous_Prices
+    previousPrices = List<Map<String, dynamic>>.from(
+      widget.item['Previous_Prices']
+              ?.map((price) => Map<String, dynamic>.from(price)) ??
+          [],
+    );
+
     if (widget.SelectedItems == 'Naylon')
       CompositionController.text = widget.item['Composition'] ?? '';
 
@@ -186,6 +191,43 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     );
   }
 
+  bool comparePreviousPrices(
+      List<dynamic>? sheetPrices, List<dynamic>? firestorePrices) {
+    // print("Sheet price: $sheetPrices");
+    // print("firestore price: $firestorePrices");
+    if (sheetPrices == null || sheetPrices.isEmpty) {
+      return firestorePrices == null || firestorePrices.isEmpty;
+    }
+    if (firestorePrices == null || firestorePrices.isEmpty) {
+      return false;
+    }
+    if (sheetPrices.length != firestorePrices.length) {
+      return false;
+    }
+
+    for (int i = 0; i < sheetPrices.length; i++) {
+      final sheetPrice = sheetPrices[i];
+      final firestorePrice = firestorePrices[i];
+      // print("Sheet price: ${sheetPrice['C/F']}");
+      // print("firestore price: ${firestorePrice['C/F']}");
+
+      // print(sheetPrice);
+      // print(firestorePrice);
+      //
+      // print("${sheetPrice['price']} != ${firestorePrice['price']}");
+      // print("${sheetPrice['date']} != ${firestorePrice['date']}");
+      // print("${sheetPrice['C/F']} != ${firestorePrice['C/F']}");
+
+      if (sheetPrice['price'] != firestorePrice['price'] ||
+          sheetPrice['date'] != firestorePrice['date'] ||
+          sheetPrice['C/F'] != firestorePrice['C/F']) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   Future<void> saveChangesToFirebase() async {
     // Prepare the updated data map
     Map<String, dynamic> updatedData = {
@@ -209,7 +251,23 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       if (widget.SelectedItems == 'Naylon')
         'Composition': CompositionController.text,
     };
+    // print(updatedData["Previous_Prices"]);
+    // print(widget.item["Previous_Prices"]);
 
+    // print(updatedData['Kodu'] != widget.item['Kodu']);
+    // print(updatedData['Kalite'] != widget.item['Kalite']);
+    // print(updatedData['Eni'] != widget.item['Eni']);
+    // print(updatedData['Gramaj'] != widget.item['Gramaj']);
+    // print(updatedData['Supplier'] != widget.item['Supplier']);
+    // print(updatedData['Item No'] != widget.item['Item No']);
+    // print(updatedData['Item Name'] != widget.item['Item Name']);
+    // print(updatedData['Price'] != widget.item['Price']);
+    // print(updatedData['Date'] != widget.item['Date']);
+    // print(updatedData['NOT'] != widget.item['NOT']);
+
+    //
+    // print(!comparePreviousPrices(
+    //     updatedData['Previous_Prices'], widget.item['Previous_Prices']));
     // Check if any changes occurred
     bool hasChanges = updatedData['Kodu'] != widget.item['Kodu'] ||
         updatedData['Kalite'] != widget.item['Kalite'] ||
@@ -221,8 +279,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         updatedData['Price'] != widget.item['Price'] ||
         updatedData['Date'] != widget.item['Date'] ||
         updatedData['NOT'] != widget.item['NOT'] ||
-        updatedData['Previous_Prices'].toString() !=
-            widget.item['Previous_Prices'].toString() ||
+        !comparePreviousPrices(
+            updatedData['Previous_Prices'], widget.item['Previous_Prices']) ||
         (widget.SelectedItems == 'Naylon' &&
             updatedData['Composition'] != widget.item['Composition']);
 
@@ -430,11 +488,11 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         ),
         const SizedBox(height: 10),
         Table(
-          columnWidths: {
-            0: const FlexColumnWidth(1.5), // Price
-            1: const FlexColumnWidth(2.2), // Date
-            2: const FlexColumnWidth(1.5), // C/F
-            3: const FlexColumnWidth(2), // Select (Radio Button)
+          columnWidths: const {
+            0: FlexColumnWidth(1.5), // Price
+            1: FlexColumnWidth(2.2), // Date
+            2: FlexColumnWidth(1.5), // C/F
+            3: FlexColumnWidth(2), // Select (Radio Button)
           },
           border: TableBorder.all(color: Colors.grey),
           children: [
@@ -698,7 +756,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   suffix: '',
                   prefix: ''),
               const SizedBox(height: 10),
-
               if (widget.SelectedItems == 'Naylon')
                 buildTextField(
                     controller: CompositionController,
@@ -706,7 +763,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                     enabled: true,
                     suffix: '',
                     prefix: ''),
-
               Row(
                 children: [
                   Expanded(
@@ -734,25 +790,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               const SizedBox(
                 height: 10,
               ),
-
               buildPreviousPricesTable(),
-              const SizedBox(height: 20),
-              // ElevatedButton(
-              //   onPressed: saveChangesToFirebase,
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: const Color(0xffa4392f),
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(16.0),
-              //     ),
-              //   ),
-              //   child: const Padding(
-              //     padding: EdgeInsets.symmetric(vertical: 12.0),
-              //     child: Text(
-              //       'Save Changes',
-              //       style: TextStyle(color: Colors.white),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
         ),

@@ -23,8 +23,8 @@ class ItemsScreenState extends State<ItemsScreen> {
   String selectedItem = 'Polyester';
 
   List<Map<String, dynamic>> dataList = [];
-  static List<Map<String, dynamic>> filteredList = [];
-  int ItemCount = filteredList.length;
+  List<Map<String, dynamic>> filteredList = [];
+  int ItemCount = 0;
 
   List<Map<String, dynamic>> itemsToDelete = [];
   bool isSearching = false; // Track whether the search bar is active
@@ -413,25 +413,6 @@ class ItemsScreenState extends State<ItemsScreen> {
     // listenToFirestoreChanges();
     fetchDataForSelectedItem();
   }
-
-  // void listenToFirestoreChanges() {
-  //   _firestoreSubscription = FirebaseFirestore.instance
-  //       .collection(selectedItem)
-  //       .snapshots()
-  //       .listen((snapshot) {
-  //     setState(() {
-  //       dataList = snapshot.docs.map((doc) {
-  //         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-  //         data['Kodu'] = doc.id;
-  //         return data;
-  //       }).toList();
-  //
-  //       // Ensure dataList is sorted
-  //       dataList.sort((a, b) => a['Kodu'].compareTo(b['Kodu']));
-  //       filteredList = List.from(dataList);
-  //     });
-  //   });
-  // }
 
   Future<void> fetchDataForSelectedItem() async {
     setState(() {

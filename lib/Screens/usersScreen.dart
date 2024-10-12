@@ -128,7 +128,7 @@ class _UsersScreenState extends State<UsersScreen> {
                       initial: user.initial,
                       customerId: '',
                       isUser:
-                          false, // Assuming this is needed for the infoCard widget
+                          true, // Assuming this is needed for the infoCard widget
                     );
                   },
                   separatorBuilder: (BuildContext context, int index) =>

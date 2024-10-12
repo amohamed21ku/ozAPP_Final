@@ -44,8 +44,6 @@ dependencies:
   intl: ^0.19.0
   gsheets: ^0.5.0
   table_calendar: ^3.1.2
-  image_picker: ^1.1.2
-  draggable_scrollbar: ^0.1.0
 
 dev_dependencies:
   flutter_test:

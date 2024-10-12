@@ -86,40 +86,40 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // -- BUTTON
-              SizedBox(
-                width: 200,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Navigate to UpdateProfileScreen (Create the screen if needed)
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //       builder: (context) => UpdateProfileScreen(
-                    //             user: currentUser,
-                    //           )),
-                    // );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(
-                        0xffa4392f), // Replace tPrimaryColor with color value
-                    shape: const StadiumBorder(),
-                  ),
-                  child: const Text(
-                    'Edit Profile', // Replace tEditProfile with actual text
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
+              // SizedBox(
+              //   width: 200,
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       // Navigate to UpdateProfileScreen (Create the screen if needed)
+              //       // Navigator.push(
+              //       //   context,
+              //       //   MaterialPageRoute(
+              //       //       builder: (context) => UpdateProfileScreen(
+              //       //             user: currentUser,
+              //       //           )),
+              //       // );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: const Color(
+              //           0xffa4392f), // Replace tPrimaryColor with color value
+              //       shape: const StadiumBorder(),
+              //     ),
+              //     child: const Text(
+              //       'Edit Profile', // Replace tEditProfile with actual text
+              //       style: TextStyle(color: Colors.white),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 30),
               const Divider(),
               const SizedBox(height: 10),
 
               // -- MENU
-              ProfileMenuWidget(
-                title: "Settings",
-                icon: Icons.settings, // Replaced LineAwesomeIcons.cog
-                onPress: () {},
-              ),
+              // ProfileMenuWidget(
+              //   title: "Settings",
+              //   icon: Icons.settings, // Replaced LineAwesomeIcons.cog
+              //   onPress: () {},
+              // ),
               ProfileMenuWidget(
                 title: "Billing Details",
                 icon: Icons
@@ -133,19 +133,19 @@ class ProfileScreen extends StatelessWidget {
                   );
                 },
               ),
-              ProfileMenuWidget(
-                title: "User Management",
-                icon: Icons
-                    .manage_accounts, // Replaced LineAwesomeIcons.user_check
-                onPress: () {},
-              ),
+              // ProfileMenuWidget(
+              //   title: "User Management",
+              //   icon: Icons
+              //       .manage_accounts, // Replaced LineAwesomeIcons.user_check
+              //   onPress: () {},
+              // ),
               const Divider(),
               const SizedBox(height: 10),
-              ProfileMenuWidget(
-                title: "Information",
-                icon: Icons.info, // Replaced LineAwesomeIcons.info
-                onPress: () {},
-              ),
+              // ProfileMenuWidget(
+              //   title: "Information",
+              //   icon: Icons.info, // Replaced LineAwesomeIcons.info
+              //   onPress: () {},
+              // ),
               ProfileMenuWidget(
                 title: "Logout",
                 icon: Icons

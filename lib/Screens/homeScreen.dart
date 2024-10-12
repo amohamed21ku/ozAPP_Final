@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oz/Screens/login_screen.dart';
 import 'package:oz/Screens/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onItemTapped(int index) {
     setState(() {
+      _backPressCounter = 0;
       _selectedIndex = index;
       _refreshEvents();
     });
@@ -617,15 +617,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<bool> _onWillPop() async {
-    if (_backPressCounter < 1) {
+    if (_backPressCounter < 2) {
       // If the user has pressed the back button less than once
       _backPressCounter++;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Press back again to exit'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      // if (_backPressCounter == 2)
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(
+      //       content: Text('Press back again to exit'),
+      //       duration: Duration(seconds: 2),
+      //     ),
+      //   );
+      _onItemTapped(0);
       return false; // Prevent back navigation
     }
     return true; // Allow back navigation on the second press
@@ -749,7 +751,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   colour: Colors.white,
                   title: 'Items',
                   onPressed: () {
-                    Navigator.pushNamed(context, 'itemsscreen');
+                    Navigator.pushNamed(context, 'itemsscreen').then((value) {
+                      setState(() {
+                        _refreshEvents();
+                      });
+                    });
                   },
                   width: 10,
                   height: 100,
@@ -764,7 +770,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   colour: Colors.white,
                   title: 'Customers',
                   onPressed: () {
-                    Navigator.pushNamed(context, 'customerscreen');
+                    Navigator.pushNamed(context, 'customerscreen')
+                        .then((value) {
+                      setState(() {
+                        _refreshEvents();
+                      });
+                    });
+                    ;
                   },
                   width: 0,
                   height: 100,
@@ -785,7 +797,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   colour: Colors.white,
                   title: 'Sheet',
                   onPressed: () {
-                    Navigator.pushNamed(context, "balancesheet");
+                    Navigator.pushNamed(context, "balancesheet").then((value) {
+                      setState(() {
+                        _refreshEvents();
+                      });
+                    });
+                    ;
                   },
                   width: 10,
                   height: 100,
@@ -800,7 +817,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   colour: Colors.white,
                   title: 'Users',
                   onPressed: () {
-                    Navigator.pushNamed(context, "usersscreen");
+                    Navigator.pushNamed(context, "usersscreen").then((value) {
+                      setState(() {
+                        _refreshEvents();
+                      });
+                    });
+                    ;
                   },
                   width: 0,
                   height: 100,

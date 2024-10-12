@@ -16,9 +16,9 @@ import 'package:flutter/foundation.dart'
 /// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
-    // if (kIsWeb) {
-    //   return web;
-    // }
+    if (kIsWeb) {
+      return web;
+    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
@@ -49,19 +49,12 @@ class DefaultFirebaseOptions {
     storageBucket: 'ozapp-as1703.appspot.com',
   );
 
-  // static const FirebaseOptions android = FirebaseOptions(
-  //   apiKey: 'AIzaSyCZth2RlkEGi9BPmjJFBCGtEaw0bJGF_XA',
-  //   appId: '1:994510824234:android:84b0cc20da51c48875b453',
-  //   messagingSenderId: '994510824234',
-  //   projectId: 'ozapp-as1703',
-  //   storageBucket: 'ozapp-as1703.appspot.com',
-  // );
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBHBz-SgnXasSjML1eA6LP9gv54sKrpMMs',
-    appId: '1:1060579352484:android:596e018259181727042b31',
-    messagingSenderId: '1060579352484',
-    projectId: 'ozapp-alter',
-    storageBucket: 'ozapp-alter.appspot.com',
+    apiKey: 'AIzaSyCZth2RlkEGi9BPmjJFBCGtEaw0bJGF_XA',
+    appId: '1:994510824234:android:84b0cc20da51c48875b453',
+    messagingSenderId: '994510824234',
+    projectId: 'ozapp-as1703',
+    storageBucket: 'ozapp-as1703.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

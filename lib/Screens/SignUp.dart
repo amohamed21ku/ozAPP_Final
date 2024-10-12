@@ -1,11 +1,11 @@
 // import 'dart:io';
-// import 'package:flutter/material.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
+// import 'package:flutter/material.dart';
+// import 'package:permission_handler/permission_handler.dart' as perm_handler;
 // import 'package:image_picker/image_picker.dart';
-// import 'package:google_fonts/google_fonts.dart';
 // import 'package:permission_handler/permission_handler.dart';
-//
-// import '../components.dart';
+// import 'package:uuid/uuid.dart';
 //
 // class SignUpPage extends StatefulWidget {
 //   @override
@@ -15,206 +15,152 @@
 // class _SignUpPageState extends State<SignUpPage> {
 //   final _formKey = GlobalKey<FormState>();
 //   final TextEditingController _nameController = TextEditingController();
+//   final TextEditingController _emailController = TextEditingController();
 //   final TextEditingController _usernameController = TextEditingController();
 //   final TextEditingController _passwordController = TextEditingController();
-//   final TextEditingController _idController = TextEditingController();
-//   final TextEditingController _emailController = TextEditingController();
-//   File? _profilePicture;
-//   bool _isLoading = false;
 //
-//   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+//   File? _profileImage;
+//   final ImagePicker _picker = ImagePicker();
+//   final _uuid = Uuid(); // For generating a random user ID
 //
-//   Future<void> _pickImage() async {
-//     // Check for storage permissions
-//     final status = await Permission.storage.status;
-//     if (!status.isGranted) {
-//       // Ask for permission if not granted
-//       final result = await Permission.storage.request();
-//       if (!result.isGranted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(
-//               content:
-//                   Text('Storage permission is required to pick an image.')),
-//         );
-//         return;
+//   Future<void> _getPermission() async {
+//     if (Platform.isAndroid) {
+//       var status = await perm_handler.Permission.storage.status;
+//       if (status.isGranted) {
+//         // Permission is already granted, open image picker
+//         _pickProfileImage();
+//       } else if (status.isDenied) {
+//         // Request permission
+//         status = await perm_handler.Permission.storage.request();
+//         if (status.isGranted) {
+//           _pickProfileImage();
+//         } else {
+//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//             content: Text('Permission to access storage was denied'),
+//           ));
+//         }
+//       } else if (status.isPermanentlyDenied) {
+//         // If permission is permanently denied, open app settings
+//         openAppSettings();
+//       }
+//     } else if (Platform.isIOS) {
+//       var status = await perm_handler.Permission.photos.status;
+//       if (status.isGranted) {
+//         _pickProfileImage();
+//       } else if (status.isDenied) {
+//         // Request permission
+//         status = await perm_handler.Permission.photos.request();
+//         if (status.isGranted) {
+//           _pickProfileImage();
+//         } else {
+//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//             content: Text('Permission to access photos was denied'),
+//           ));
+//         }
+//       } else if (status.isPermanentlyDenied) {
+//         openAppSettings();
 //       }
 //     }
+//   }
 //
-//     // Proceed to pick image
-//     final pickedFile =
-//         await ImagePicker().pickImage(source: ImageSource.gallery);
+//   Future<void> _pickProfileImage() async {
+//     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 //     if (pickedFile != null) {
 //       setState(() {
-//         _profilePicture = File(pickedFile.path);
+//         _profileImage = File(pickedFile.path);
 //       });
 //     }
 //   }
 //
-//   Future<void> _signUp() async {
-//     if (!_formKey.currentState!.validate()) return;
+//   Future<String> _uploadProfileImageToStorage(String userId) async {
+//     if (_profileImage == null) return '';
 //
-//     setState(() {
-//       _isLoading = true;
-//     });
+//     final storageRef =
+//         FirebaseStorage.instance.ref().child('profilePictures/$userId');
+//     await storageRef.putFile(_profileImage!);
+//     return await storageRef.getDownloadURL();
+//   }
 //
-//     try {
-//       // Generate a new ID for the user document
-//       final String userId = _firestore.collection('users').doc().id;
+//   Future<void> _signUpUser() async {
+//     if (_formKey.currentState!.validate()) {
+//       try {
+//         // Generate a random user ID
+//         String userId = _uuid.v4();
 //
-//       // Upload profile picture to Firebase Storage
-//       String profilePictureUrl = '';
-//       if (_profilePicture != null) {
-//         final storageRef =
-//             FirebaseStorage.instance.ref().child('profilePictures/$userId.jpg');
-//         await storageRef.putFile(_profilePicture!);
-//         profilePictureUrl = await storageRef.getDownloadURL();
+//         String profilePicUrl = await _uploadProfileImageToStorage(userId);
+//
+//         // Add user info to Firestore
+//         await FirebaseFirestore.instance.collection('users').doc(userId).set({
+//           'email': _emailController.text.trim(),
+//           'name': _nameController.text.trim(),
+//           'username': _usernameController.text.trim(),
+//           'password':
+//               _passwordController.text.trim(), // Store hashed in production
+//           'profilePicture': profilePicUrl,
+//           'baksinfo': {}, // Empty map
+//           'calender_events': {} // Empty map
+//         });
+//
+//         // Show success or navigate to another screen
+//       } catch (e) {
+//         // Handle errors (e.g. display a snackbar)
+//         print('Error: $e');
 //       }
-//
-//       // Save user details in Firestore
-//       await _firestore.collection('users').doc(userId).set({
-//         'name': _nameController.text.trim(),
-//         'username': _usernameController.text.trim(),
-//         'password': _passwordController.text.trim(),
-//         'id': _idController.text.trim(),
-//         'email': _emailController.text.trim(),
-//         'profilePicture': profilePictureUrl,
-//       });
-//
-//       // Navigate to the main page or show success message
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('Sign up successful!')),
-//       );
-//
-//       // Navigate to the HomeScreen
-//       Navigator.pushReplacementNamed(context, 'homeScreen');
-//     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error: ${e.toString()}')),
-//       );
-//     } finally {
-//       setState(() {
-//         _isLoading = false;
-//       });
 //     }
-//     Navigator.pop(context);
 //   }
 //
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
-//       appBar: AppBar(
-//         leading: IconButton(
-//           icon: const Icon(
-//             Icons.arrow_back,
-//             color: Colors.white,
-//           ),
-//           onPressed: () {
-//             // saveChangesToFirebase();
-//             Navigator.pop(context);
-//           },
-//         ),
-//         title: Text(
-//           'Sign Up',
-//           style: GoogleFonts.poppins(color: Colors.white),
-//         ),
-//         backgroundColor: const Color(0xffa4392f),
-//       ),
-//       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(16.0),
+//       appBar: AppBar(title: Text('Sign Up')),
+//       body: Padding(
+//         padding: EdgeInsets.all(16.0),
 //         child: Form(
 //           key: _formKey,
 //           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.stretch,
 //             children: [
-//               GestureDetector(
-//                 onTap: _pickImage,
-//                 child: CircleAvatar(
-//                   radius: 50,
-//                   backgroundColor: const Color(0xffa4392f).withOpacity(0.5),
-//                   backgroundImage: _profilePicture != null
-//                       ? FileImage(_profilePicture!)
-//                       : null,
-//                   child: _profilePicture == null
-//                       ? const Icon(Icons.add_a_photo,
-//                           color: Colors.white, size: 50)
-//                       : null,
-//                 ),
+//               TextFormField(
+//                 controller: _nameController,
+//                 decoration: InputDecoration(labelText: 'Name'),
+//                 validator: (value) => value!.isEmpty ? 'Enter your name' : null,
 //               ),
-//               const SizedBox(height: 20),
-//               _buildTextField('Name', _nameController),
-//               const SizedBox(height: 10),
-//               _buildTextField('Username', _usernameController),
-//               const SizedBox(height: 10),
-//               _buildTextField('ID', _idController),
-//               const SizedBox(height: 10),
-//               _buildTextField('Email', _emailController,
-//                   inputType: TextInputType.emailAddress),
-//               const SizedBox(height: 10),
-//               _buildTextField('Password', _passwordController,
-//                   obscureText: true),
-//               const SizedBox(height: 20),
-//               RoundedButton(
-//                 title: 'Sign Up',
-//                 colour: const Color(0xffa4392f),
-//                 onPressed: () async {
-//                   _isLoading ? null : _signUp;
-//                 },
-//                 icon: Icons.arrow_forward,
+//               TextFormField(
+//                 controller: _emailController,
+//                 decoration: InputDecoration(labelText: 'Email'),
+//                 validator: (value) =>
+//                     value!.isEmpty ? 'Enter your email' : null,
 //               ),
-//               // ElevatedButton(
-//               //   onPressed: _isLoading ? null : _signUp,
-//               //   style: ElevatedButton.styleFrom(
-//               //     backgroundColor: const Color(0xffa4392f), // Button color
-//               //     padding: const EdgeInsets.symmetric(vertical: 16.0),
-//               //   ),
-//               //   child: _isLoading
-//               //       ? const CircularProgressIndicator(
-//               //           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-//               //         )
-//               //       : Text(
-//               //           'Sign Up',
-//               //           style: GoogleFonts.poppins(color: Colors.white),
-//               //         ),
-//               // ),
+//               TextFormField(
+//                 controller: _usernameController,
+//                 decoration: InputDecoration(labelText: 'Username'),
+//                 validator: (value) =>
+//                     value!.isEmpty ? 'Enter your username' : null,
+//               ),
+//               TextFormField(
+//                 controller: _passwordController,
+//                 decoration: InputDecoration(labelText: 'Password'),
+//                 obscureText: true,
+//                 validator: (value) => value!.length < 6
+//                     ? 'Password must be at least 6 characters'
+//                     : null,
+//               ),
+//               SizedBox(height: 10),
+//               _profileImage == null
+//                   ? Text('No Profile Image Selected')
+//                   : Image.file(_profileImage!, height: 100, width: 100),
+//               ElevatedButton(
+//                 onPressed: _getPermission,
+//                 child: Text('Pick Profile Image'),
+//               ),
+//               SizedBox(height: 20),
+//               ElevatedButton(
+//                 onPressed: _signUpUser,
+//                 child: Text('Sign Up'),
+//               ),
 //             ],
 //           ),
 //         ),
 //       ),
-//     );
-//   }
-//
-//   Widget _buildTextField(String label, TextEditingController controller,
-//       {bool obscureText = false,
-//       TextInputType inputType = TextInputType.text}) {
-//     return TextFormField(
-//       controller: controller,
-//       keyboardType: inputType,
-//       obscureText: obscureText,
-//       decoration: InputDecoration(
-//         labelText: label,
-//         labelStyle: GoogleFonts.poppins(
-//           color: Colors.grey,
-//         ),
-//         floatingLabelStyle: GoogleFonts.poppins(
-//           color: const Color(0xffa4392f),
-//         ),
-//         enabledBorder: const OutlineInputBorder(
-//           borderSide: BorderSide(color: Colors.grey),
-//           borderRadius: BorderRadius.all(Radius.circular(8.0)),
-//         ),
-//         focusedBorder: const OutlineInputBorder(
-//           borderSide: BorderSide(color: Color(0xffa4392f), width: 2.0),
-//           borderRadius: BorderRadius.all(Radius.circular(16.0)),
-//         ),
-//       ),
-//       cursorColor: const Color(0xffa4392f),
-//       style: GoogleFonts.poppins(color: Colors.black),
-//       validator: (value) {
-//         if (value == null || value.isEmpty) {
-//           return 'Please enter $label';
-//         }
-//         return null;
-//       },
 //     );
 //   }
 // }

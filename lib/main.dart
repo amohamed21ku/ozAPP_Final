@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:oz/Screens/SignUp.dart';
 import 'package:oz/firebase_options.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,10 +25,10 @@ Future<void> main() async {
   SharedPreferences logindata = await SharedPreferences.getInstance();
   bool isNew = logindata.getBool('login') ?? true;
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-  ));
+  // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+  //   statusBarColor: Colors.transparent,
+  //   statusBarIconBrightness: Brightness.dark,
+  // ));
   runApp(MyApp(isNew: isNew));
 }
 

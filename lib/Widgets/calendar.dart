@@ -315,7 +315,8 @@ class _CalendarPageState extends State<CalendarPage> {
         actions: [
           IconButton(
             icon: const Icon(
-              Icons.add,
+              Icons.add_box_rounded,
+              size: 25,
               color: Colors.white,
             ),
             onPressed: _showAddEventDialog,
@@ -412,44 +413,80 @@ class _CalendarPageState extends State<CalendarPage> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      20.0), // Rounded corners
+                                ),
+                                backgroundColor:
+                                    Colors.white, // Set background to white
                                 title: Text(
                                   'Confirm Delete',
                                   style: GoogleFonts.poppins(
                                     color: const Color(
-                                        0xffa4392f), // Specify the color
+                                        0xffa4392f), // Title color in red
+                                    fontWeight: FontWeight.bold, // Bold title
+                                    fontSize: 20.0, // Font size for title
                                   ),
                                 ),
                                 content: Text(
                                   'Do you want to delete this Event?',
-                                  style: GoogleFonts
-                                      .poppins(), // Use default Poppins style
+                                  style: GoogleFonts.poppins(
+                                    color: Colors
+                                        .black, // Standard black color for the content text
+                                    fontSize: 16.0, // Font size for content
+                                  ),
                                 ),
                                 actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(false); // Cancel deletion
-                                    },
-                                    child: Text(
-                                      'No',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(
-                                            0xffa4392f), // Specify the color
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(false); // Cancel deletion
+                                          },
+                                          child: Text(
+                                            'No',
+                                            style: GoogleFonts.poppins(
+                                              color: const Color(
+                                                  0xffa4392f), // Button text color in red
+                                              fontWeight: FontWeight
+                                                  .w600, // Font weight for buttons
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pop(true); // Confirm deletion
-                                    },
-                                    child: Text(
-                                      'Yes',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(
-                                            0xffa4392f), // Specify the color
+                                      const SizedBox(
+                                          width: 10), // Spacing between buttons
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(true); // Confirm deletion
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(
+                                                0xffa4392f), // Red background color
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      12.0), // Button shape
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Yes',
+                                            style: GoogleFonts.poppins(
+                                              color: Colors
+                                                  .white, // Button text color in white
+                                              fontWeight: FontWeight
+                                                  .w600, // Font weight for buttons
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
                                 ],
                               );
