@@ -9,18 +9,16 @@ class BuildToDo extends StatefulWidget {
   final Function(int) _deleteEventFromFirestore;
   final bool showadd;
 
-  BuildToDo({
-    Key? key,
+  const BuildToDo({
+    super.key,
     required this.events,
     required Function refreshEvents,
     required Function showAddEventDialog,
     required Function(int) deleteEventFromFirestore,
-    required showadd,
+    required this.showadd,
   })  : _refreshEvents = refreshEvents,
         _showAddEventDialog = showAddEventDialog,
-        _deleteEventFromFirestore = deleteEventFromFirestore,
-        showadd = showadd,
-        super(key: key);
+        _deleteEventFromFirestore = deleteEventFromFirestore;
 
   @override
   State<BuildToDo> createState() => _BuildToDoState();
@@ -52,12 +50,12 @@ Future<void> removeItemFromCustomer(String customerId, String kodu) async {
         'items.$itemIdToRemove': FieldValue.delete(),
       });
 
-      print('Item removed successfully!');
+      // print('Item removed successfully!');
     } else {
-      print('Item with kodu $kodu not found.');
+      // print('Item with kodu $kodu not found.');
     }
   } catch (e) {
-    print('Error removing item: $e');
+    // print('Error removing item: $e');
   }
 }
 
@@ -105,16 +103,16 @@ Future<void> addItemToCustomer(
     };
 
     // Use a map to update the items field with the new item
-    Map<String, dynamic> updatedItems = {itemId: newItem};
+    // Map<String, dynamic> updatedItems = {itemId: newItem};
 
     // Update the Firestore document
     await customerDoc.update({
       'items.$itemId': newItem,
     });
 
-    print('Item added successfully!');
+    // print('Item added successfully!');
   } catch (e) {
-    print('Error adding item: $e');
+    // print('Error adding item: $e');
   }
 }
 
@@ -270,7 +268,7 @@ class _BuildToDoState extends State<BuildToDo> {
           await widget._deleteEventFromFirestore(index);
         },
         child: Card(
-          color: event['isChecked'] ? Color(0xfff0f0f0) : Colors.white,
+          color: event['isChecked'] ? const Color(0xfff0f0f0) : Colors.white,
           elevation: 5,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -324,10 +322,10 @@ class _BuildToDoState extends State<BuildToDo> {
                               event['CustomerId'], event['Kodu']);
                         }
                       } catch (e) {
-                        print("Error updating Firestore: $e");
+                        // print("Error updating Firestore: $e");
                       }
                     } else {
-                      print("Document ID is null. Cannot update Firestore.");
+                      // print("Document ID is null. Cannot update Firestore.");
                     }
                   },
                   child: Icon(
@@ -356,7 +354,7 @@ class _BuildToDoState extends State<BuildToDo> {
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           color: event['isChecked']
-                              ? Color(0xff9e9b9b)
+                              ? const Color(0xff9e9b9b)
                               : Colors.black54,
                         ),
                       ),

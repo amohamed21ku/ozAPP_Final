@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -379,7 +378,7 @@ class MyTextField extends StatelessWidget {
 class PreviousPricesTable extends StatelessWidget {
   final List<Map<String, dynamic>> previousPrices;
 
-  PreviousPricesTable({required this.previousPrices});
+  const PreviousPricesTable({super.key, required this.previousPrices});
 
   @override
   Widget build(BuildContext context) {
@@ -392,9 +391,9 @@ class PreviousPricesTable extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         DataTable(
-          columns: [
-            const DataColumn(label: Text('Date')),
-            const DataColumn(label: Text('Price')),
+          columns: const [
+            DataColumn(label: Text('Date')),
+            DataColumn(label: Text('Price')),
           ],
           rows: previousPrices.map((price) {
             return DataRow(
@@ -641,7 +640,7 @@ class _VisibleActionsState extends State<VisibleActions> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 5,
                 ),
                 // Add the button Here
@@ -731,12 +730,12 @@ class CustomTextField extends StatelessWidget {
   final suf;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.labelText,
     required this.controller,
     this.pre,
     this.suf,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -748,8 +747,8 @@ class CustomTextField extends StatelessWidget {
         color: Colors.black,
       ),
       decoration: InputDecoration(
-        prefix: this.pre,
-        suffix: this.suf,
+        prefix: pre,
+        suffix: suf,
         labelText: labelText,
         labelStyle: GoogleFonts.poppins(
           fontSize: 16,

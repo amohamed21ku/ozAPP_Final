@@ -71,7 +71,7 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching data: $e');
+      // print('Error fetching data: $e');
     } finally {
       if (mounted) {
         setState(() => isLoading = false);
@@ -136,7 +136,7 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
             .update({'items': itemsMap});
       }
     } catch (e) {
-      print('Error deleting item: $e');
+      // print('Error deleting item: $e');
     }
   }
 
@@ -243,11 +243,11 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
                             ['id']), // Use item ID as the key for stability
                         direction: DismissDirection.endToStart,
                         onDismissed: (direction) async {
-                          print("The deleted index is : $index");
-                          print(
-                              'The deleted Item is : ${filteredItems[index]}');
-                          print(
-                              'The deleted id is : ${filteredItems[index]['id']}');
+                          // print("The deleted index is : $index");
+                          // print(
+                          // 'The deleted Item is : ${filteredItems[index]}');
+                          // print(
+                          //     'The deleted id is : ${filteredItems[index]['id']}');
                           // Save item ID for removal
                           String itemId = filteredItems[index]['id'];
 
@@ -305,7 +305,7 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
                           );
                         },
                         background: Container(
-                          color: Color(0xffa4392f),
+                          color: const Color(0xffa4392f),
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: const Icon(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -510,7 +509,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                     DateTime.parse(
                                         event['date'].toDate().toString()),
                                     eventTime)
-                                ? Color(0xfff0f0f0)
+                                ? const Color(0xfff0f0f0)
                                 : Colors.white,
                             elevation: 2,
                             shape: RoundedRectangleBorder(
@@ -544,8 +543,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                               .toDate()
                                               .toString()),
                                           eventTime)
-                                      ? Color(0x99a4392f)
-                                      : Color(0xffa4392f),
+                                      ? const Color(0x99a4392f)
+                                      : const Color(0xffa4392f),
                                   size: 22.0,
                                 ),
                               ),
@@ -572,7 +571,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                                 .toDate()
                                                 .toString()),
                                             eventTime)
-                                        ? Color(0x66ff0000)
+                                        ? const Color(0x66ff0000)
                                         : Colors.grey,
                                     size: 16.0,
                                   ),

@@ -152,8 +152,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           [],
     );
 
-    if (widget.SelectedItems == 'Naylon')
+    if (widget.SelectedItems == 'Naylon') {
       CompositionController.text = widget.item['Composition'] ?? '';
+    }
 
     // Set the default selected index based on matching values
     _selectedPriceIndex = -1; // Default to -1 (no selection)
@@ -287,9 +288,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     if (!hasChanges) {
       // If no changes, do nothing
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No changes detected')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('No changes detected')),
+        // );
       }
       return;
     }
@@ -349,7 +350,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       obscureText: obscureText,
       decoration: InputDecoration(
         suffix: Text(suffix),
-        prefix: Text('$prefix'),
+        prefix: Text(prefix),
         labelText: label,
         labelStyle: GoogleFonts.poppins(
           color: Colors.grey,
@@ -656,7 +657,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   ),
                 ],
               );
-            }).toList(),
+            }),
           ],
         ),
         const SizedBox(height: 20),

@@ -64,14 +64,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex = index;
       _refreshEvents();
     });
-    if (index == 0)
+    if (index == 0) {
       _pageController.jumpToPage(0);
-    else
+    } else {
       _pageController.animateToPage(
         index,
         duration: const Duration(milliseconds: 800),
         curve: Curves.ease,
       );
+    }
   }
 
   // Future<void> _logout(BuildContext context) async {
@@ -153,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
         customers = snapshot.docs.map((doc) => doc['name'].toString()).toList();
         customerIds = {for (var doc in snapshot.docs) doc['name']: doc.id};
       } catch (e) {
-        print('Error fetching customers: $e');
+        // print('Error fetching customers: $e');
       }
     }
 
@@ -195,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Expanded(child: SizedBox())
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 6,
                       ),
                       Center(
@@ -362,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: TextField(
                                 controller: priceController,
                                 decoration: InputDecoration(
-                                  prefix: Text(
+                                  prefix: const Text(
                                     "\$ ",
                                     style: TextStyle(color: Colors.white),
                                   ),
@@ -522,9 +523,9 @@ class _HomeScreenState extends State<HomeScreen> {
         'items': FieldValue.arrayUnion([newItem]),
       });
 
-      print('Item added successfully!');
+      // print('Item added successfully!');
     } catch (e) {
-      print('Error adding item: $e');
+      // print('Error adding item: $e');
     }
   }
 
@@ -733,10 +734,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     tag: 'profile_pic',
                     child: CircleAvatar(
                       radius: 30.0,
-                      backgroundImage: currentUser.profilePicture != null
-                          ? CachedNetworkImageProvider(
-                              currentUser.profilePicture)
-                          : const AssetImage('images/man.png') as ImageProvider,
+                      backgroundImage: CachedNetworkImageProvider(
+                          currentUser.profilePicture),
                     ),
                   ),
                 ),
@@ -776,7 +775,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _refreshEvents();
                       });
                     });
-                    ;
                   },
                   width: 0,
                   height: 100,
@@ -802,7 +800,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _refreshEvents();
                       });
                     });
-                    ;
                   },
                   width: 10,
                   height: 100,
@@ -822,7 +819,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _refreshEvents();
                       });
                     });
-                    ;
                   },
                   width: 0,
                   height: 100,

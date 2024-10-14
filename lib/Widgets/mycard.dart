@@ -465,7 +465,8 @@ class ItemCard extends StatelessWidget {
   final Map<String, dynamic> Item;
   final int index;
 
-  ItemCard({
+  const ItemCard({
+    super.key,
     required this.columnOrder,
     required this.columnVisibility,
     required this.Item,

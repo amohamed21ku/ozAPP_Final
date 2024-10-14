@@ -61,7 +61,7 @@ class UserDetailScreen extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 80.0,
                   backgroundImage: CachedNetworkImageProvider(
-                    user.profilePicture ?? 'https://via.placeholder.com/150',
+                    user.profilePicture,
                   ),
                 ),
               ),

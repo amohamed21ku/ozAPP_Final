@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,18 +7,18 @@ import '../models/Customers.dart';
 class ordersSheet extends StatefulWidget {
   final Customer customer;
 
-  const ordersSheet({Key? key, required this.customer}) : super(key: key);
+  const ordersSheet({super.key, required this.customer});
 
   @override
   _ordersSheetState createState() => _ordersSheetState();
 }
 
 class _ordersSheetState extends State<ordersSheet> {
-  List<Map<String, dynamic>> _data = [];
-  List<TextEditingController> _descriptionControllers = [];
-  List<TextEditingController> _quantityControllers = [];
-  List<TextEditingController> _unitPriceControllers = [];
-  List<TextEditingController> _amountControllers = [];
+  final List<Map<String, dynamic>> _data = [];
+  final List<TextEditingController> _descriptionControllers = [];
+  final List<TextEditingController> _quantityControllers = [];
+  final List<TextEditingController> _unitPriceControllers = [];
+  final List<TextEditingController> _amountControllers = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool isLoading = false;
@@ -166,7 +164,7 @@ class _ordersSheetState extends State<ordersSheet> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '${widget.customer.name}',
+                            widget.customer.name,
                             style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -364,13 +362,9 @@ class _ordersSheetState extends State<ordersSheet> {
     List<Map<String, dynamic>> updatedGoods = [];
 
     for (int i = 0; i < _data.length; i++) {
-      double? quantity =
-          _data[i]['quantity'] != null ? _data[i]['quantity'].toDouble() : null;
-      double? unitPrice = _data[i]['unitPrice'] != null
-          ? _data[i]['unitPrice'].toDouble()
-          : null;
-      double? amount =
-          _data[i]['amount'] != null ? _data[i]['amount'].toDouble() : null;
+      double? quantity = _data[i]['quantity']?.toDouble();
+      double? unitPrice = _data[i]['unitPrice']?.toDouble();
+      double? amount = _data[i]['amount']?.toDouble();
 
       // Check if both quantity and unitPrice are 0 while amount is not 0
       if (quantity == 0 && unitPrice == 0 && amount != 0) {
@@ -414,12 +408,9 @@ class _ordersSheetState extends State<ordersSheet> {
       _amountControllers.clear();
 
       for (var value in goods) {
-        double? quantity =
-            value['quantity'] != null ? value['quantity'].toDouble() : null;
-        double? unitPrice =
-            value['unit_price'] != null ? value['unit_price'].toDouble() : null;
-        double? amount =
-            value['amount'] != null ? value['amount'].toDouble() : null;
+        double? quantity = value['quantity']?.toDouble();
+        double? unitPrice = value['unit_price']?.toDouble();
+        double? amount = value['amount']?.toDouble();
 
 // Check if quantity and unitPrice are both 0 and amount is not 0
         if (quantity == 0 && unitPrice == 0 && amount != 0) {

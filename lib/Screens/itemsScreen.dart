@@ -326,7 +326,7 @@ class ItemsScreenState extends State<ItemsScreen> {
       });
     } catch (e) {
       // Handle any errors here
-      print('Error adding item to Firestore: $e');
+      // print('Error adding item to Firestore: $e');
     }
   }
 
@@ -443,7 +443,7 @@ class ItemsScreenState extends State<ItemsScreen> {
       setState(() {
         isLoading = false;
       });
-      print('Error fetching data: $e');
+      // print('Error fetching data: $e');
     }
   }
 

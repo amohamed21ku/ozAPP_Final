@@ -1,7 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:oz/Screens/SignUp.dart';
 import 'package:oz/firebase_options.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,8 +45,8 @@ final ThemeData customTheme = ThemeData().copyWith(
     ),
     hintStyle: TextStyle(color: Colors.grey), // Hint text color
   ),
-  colorScheme: ColorScheme.light(
-      primary: const Color(0xffa4392f)), // Set primary color for the theme
+  colorScheme: const ColorScheme.light(
+      primary: Color(0xffa4392f)), // Set primary color for the theme
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor:
