@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor:
-          Colors.black.withOpacity(0.65), // Make background transparent
+          Colors.white.withOpacity(1), // Make background transparent
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
           initialChildSize: 0.75,
@@ -203,42 +203,44 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'Add Task',
                           style: GoogleFonts.poppins(
-                              color: Colors.white, fontSize: 18.0),
+                              color: const Color(0xffa4392f),
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.w500),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 15),
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: Colors.white,
+                              color: Colors.black,
                               width: 2.0,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: Colors.white12,
+                              color: Colors.black,
                               width: 2.0,
                             ),
                           ),
                         ),
-                        dropdownColor: Colors.grey,
-                        iconEnabledColor: Colors.white,
+                        dropdownColor: Colors.white,
+                        iconEnabledColor: Colors.black45,
                         value: isGivingSample ? 'Giving Sample' : 'Normal Task',
-                        style: GoogleFonts.poppins(color: Colors.white),
+                        style: GoogleFonts.poppins(color: Colors.black),
                         items: [
                           DropdownMenuItem(
                             value: 'Normal Task',
                             child: Text('Normal Task',
                                 style:
-                                    GoogleFonts.poppins(color: Colors.white)),
+                                    GoogleFonts.poppins(color: Colors.black)),
                           ),
                           DropdownMenuItem(
                             value: 'Giving Sample',
                             child: Text('Giving Sample',
                                 style:
-                                    GoogleFonts.poppins(color: Colors.white)),
+                                    GoogleFonts.poppins(color: Colors.black)),
                           ),
                         ],
                         onChanged: (value) {
@@ -253,16 +255,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: InputDecoration(
                             labelText: 'Task Name',
                             labelStyle:
-                                GoogleFonts.poppins(color: Colors.white),
+                                GoogleFonts.poppins(color: Colors.black),
                             enabledBorder: const UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                             focusedBorder: const UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                           ),
-                          style: GoogleFonts.poppins(color: Colors.white),
-                          cursorColor: Colors.white,
+                          style: GoogleFonts.poppins(color: Colors.black),
+                          cursorColor: Colors.black,
                         ),
                         const SizedBox(height: 10),
                         TextField(
@@ -270,16 +272,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: InputDecoration(
                             labelText: 'Description (optional)',
                             labelStyle:
-                                GoogleFonts.poppins(color: Colors.white),
+                                GoogleFonts.poppins(color: Colors.black),
                             enabledBorder: const UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                             focusedBorder: const UnderlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                           ),
-                          style: GoogleFonts.poppins(color: Colors.white),
-                          cursorColor: Colors.white,
+                          style: GoogleFonts.poppins(color: Colors.black),
+                          cursorColor: Colors.black,
                         ),
                       ] else ...[
                         DropdownButtonFormField<String>(
@@ -287,25 +289,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             border: OutlineInputBorder(),
                             enabledBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: Colors.white, width: 2.0),
+                                  BorderSide(color: Colors.black, width: 2.0),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderSide:
-                                  BorderSide(color: Colors.white12, width: 2.0),
+                                  BorderSide(color: Colors.black, width: 2.0),
                             ),
                           ),
-                          dropdownColor: Colors.grey,
+                          dropdownColor: Colors.white,
                           value: selectedCustomer.isEmpty
                               ? null
                               : selectedCustomer,
                           hint: Text('Select Customer',
-                              style: GoogleFonts.poppins(color: Colors.white)),
+                              style: GoogleFonts.poppins(color: Colors.black)),
                           items: customers.map((customer) {
                             return DropdownMenuItem(
                               value: customer,
                               child: Text(customer,
                                   style:
-                                      GoogleFonts.poppins(color: Colors.white)),
+                                      GoogleFonts.poppins(color: Colors.black)),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -323,16 +325,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'Kodu',
                                   labelStyle:
-                                      GoogleFonts.poppins(color: Colors.white),
+                                      GoogleFonts.poppins(color: Colors.black),
                                   enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                   focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                 ),
-                                style: GoogleFonts.poppins(color: Colors.white),
-                                cursorColor: Colors.white,
+                                style: GoogleFonts.poppins(color: Colors.black),
+                                cursorColor: Colors.black,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -342,16 +344,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'Name',
                                   labelStyle:
-                                      GoogleFonts.poppins(color: Colors.white),
+                                      GoogleFonts.poppins(color: Colors.black),
                                   enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                   focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                 ),
-                                style: GoogleFonts.poppins(color: Colors.white),
-                                cursorColor: Colors.white,
+                                style: GoogleFonts.poppins(color: Colors.black),
+                                cursorColor: Colors.black,
                               ),
                             ),
                           ],
@@ -365,20 +367,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: InputDecoration(
                                   prefix: const Text(
                                     "\$ ",
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(color: Colors.black),
                                   ),
                                   labelText: 'Price',
                                   labelStyle:
-                                      GoogleFonts.poppins(color: Colors.white),
+                                      GoogleFonts.poppins(color: Colors.black),
                                   enabledBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                   focusedBorder: const UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white),
+                                    borderSide: BorderSide(color: Colors.black),
                                   ),
                                 ),
-                                style: GoogleFonts.poppins(color: Colors.white),
-                                cursorColor: Colors.white,
+                                style: GoogleFonts.poppins(color: Colors.black),
+                                cursorColor: Colors.black,
                               ),
                             ),
                           ],
@@ -391,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(
                                   'Hanger',
                                   style: GoogleFonts.poppins(
-                                      color: Colors.white, fontSize: 16),
+                                      color: Colors.black, fontSize: 16),
                                 ),
                                 value: hanger,
                                 onChanged: (bool? value) {
@@ -399,8 +401,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     hanger = value!;
                                   });
                                 },
-                                activeColor: Colors.white,
-                                checkColor: Colors.black,
+                                activeColor: const Color(0xffa4392f),
+                                checkColor: Colors.white,
                                 contentPadding: EdgeInsets.zero,
                                 controlAffinity:
                                     ListTileControlAffinity.leading,
@@ -411,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 title: Text(
                                   'Yardage',
                                   style: GoogleFonts.poppins(
-                                      color: Colors.white, fontSize: 16),
+                                      color: Colors.black, fontSize: 16),
                                 ),
                                 value: yardage,
                                 onChanged: (bool? value) {
@@ -419,8 +421,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     yardage = value!;
                                   });
                                 },
-                                activeColor: Colors.white,
-                                checkColor: Colors.black,
+                                activeColor: const Color(0xffa4392f),
+                                checkColor: Colors.white,
                                 contentPadding: EdgeInsets.zero,
                                 controlAffinity:
                                     ListTileControlAffinity.leading,
@@ -440,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               child: Text(
                                 'Cancel',
-                                style: GoogleFonts.poppins(color: Colors.white),
+                                style: GoogleFonts.poppins(color: Colors.black),
                               ),
                             ),
                           ),
@@ -448,9 +450,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.black,
-                                backgroundColor:
-                                    Colors.white, // Set the text color to black
+                                foregroundColor: Colors.white,
+                                backgroundColor: const Color(
+                                    0xffa4392f), // Set the text color to black
                                 elevation:
                                     0, // Optional: remove the shadow for a flat button look
                               ),
@@ -478,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               child: Text(
                                 'Add',
-                                style: GoogleFonts.poppins(color: Colors.black),
+                                style: GoogleFonts.poppins(color: Colors.white),
                               ),
                             ),
                           ),

@@ -365,7 +365,7 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -516,11 +516,6 @@ class _CalendarPageState extends State<CalendarPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: ListTile(
-                              // trailing: const Icon(
-                              //   Icons.watch_later,
-                              //   color: Colors.red,
-                              //   size: 22.0,
-                              // ),
                               tileColor: Colors.white10,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),
