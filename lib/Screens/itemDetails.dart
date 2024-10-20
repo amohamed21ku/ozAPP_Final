@@ -32,6 +32,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController priceController = TextEditingController();
   TextEditingController dateController = TextEditingController();
+  TextEditingController indateController = TextEditingController();
   TextEditingController NOTController = TextEditingController();
   TextEditingController CompositionController = TextEditingController();
   late Future<Map<dynamic, Map<String, dynamic>>> old_previous;
@@ -39,7 +40,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   int _selectedPriceIndex = 0; // Default to the first entry
 
   List<dynamic> previousPrices = [];
-  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+  final DateFormat _dateFormat = DateFormat('MMM d, yyyy');
 
   void _confirmDelete(int index) async {
     final confirm = await showDialog<bool>(
@@ -143,6 +144,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     nameController.text = widget.item['Item Name'] ?? '';
     priceController.text = widget.item['Price'] ?? '';
     dateController.text = widget.item['Date'] ?? '';
+    indateController.text = widget.item['G-Tarihi'] ?? '';
     NOTController.text = widget.item['NOT'] ?? '';
 
     // Deep copy of Previous_Prices
@@ -182,11 +184,25 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     });
   }
 
-  Future<DateTime?> _selectDate() async {
+  Future<DateTime?> _selectDate(bool isindate) async {
     final now = DateTime.now();
+    DateTime initialDate;
+
+    // Check if the indateController is empty or not
+    if (isindate) {
+      if (indateController.text.isEmpty) {
+        initialDate = now;
+      } else {
+        // Parse the date from indateController, or fall back to 'now' if parsing fails
+        initialDate = _dateFormat.parse(indateController.text);
+      }
+    } else {
+      initialDate = now;
+    }
+
     return await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: initialDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(now.year + 1),
     );
@@ -241,6 +257,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       'Item Name': nameController.text,
       'Price': priceController.text,
       'Date': dateController.text,
+      'G-Tarihi': indateController.text,
       'NOT': NOTController.text,
       'Previous_Prices': previousPrices
           .map((entry) => {
@@ -252,19 +269,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       if (widget.SelectedItems == 'Naylon')
         'Composition': CompositionController.text,
     };
-    // print(updatedData["Previous_Prices"]);
-    // print(widget.item["Previous_Prices"]);
 
-    // print(updatedData['Kodu'] != widget.item['Kodu']);
-    // print(updatedData['Kalite'] != widget.item['Kalite']);
-    // print(updatedData['Eni'] != widget.item['Eni']);
-    // print(updatedData['Gramaj'] != widget.item['Gramaj']);
-    // print(updatedData['Supplier'] != widget.item['Supplier']);
-    // print(updatedData['Item No'] != widget.item['Item No']);
-    // print(updatedData['Item Name'] != widget.item['Item Name']);
-    // print(updatedData['Price'] != widget.item['Price']);
-    // print(updatedData['Date'] != widget.item['Date']);
-    // print(updatedData['NOT'] != widget.item['NOT']);
+    print(widget.item['G-Tarihi']);
+    print(updatedData['G-Tarihi']);
 
     //
     // print(!comparePreviousPrices(
@@ -279,6 +286,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         updatedData['Item Name'] != widget.item['Item Name'] ||
         updatedData['Price'] != widget.item['Price'] ||
         updatedData['Date'] != widget.item['Date'] ||
+        updatedData['G-Tarihi'] != widget.item['G-Tarihi'] ||
         updatedData['NOT'] != widget.item['NOT'] ||
         !comparePreviousPrices(
             updatedData['Previous_Prices'], widget.item['Previous_Prices']) ||
@@ -335,6 +343,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   Widget buildTextField({
+    required bool disabled,
     required String prefix,
     required String suffix,
     required bool enabled,
@@ -356,7 +365,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           color: Colors.grey,
         ),
         floatingLabelStyle: GoogleFonts.poppins(
-          color: const Color(0xffa4392f),
+          color: disabled ? Colors.grey : const Color(0xffa4392f),
         ),
         enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey),
@@ -368,7 +377,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         ),
       ),
       cursorColor: const Color(0xffa4392f),
-      style: GoogleFonts.poppins(color: Colors.black),
+      style: GoogleFonts.poppins(color: disabled ? Colors.grey : Colors.black),
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
@@ -396,7 +405,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   label: label1,
                   enabled: true,
                   suffix: suffix1,
-                  prefix: ''),
+                  prefix: '',
+                  disabled: false),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -405,7 +415,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                   label: label2,
                   enabled: true,
                   suffix: suffix2,
-                  prefix: ''),
+                  prefix: '',
+                  disabled: false),
             ),
           ],
         ),
@@ -442,7 +453,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 label: '',
                 enabled: true,
                 suffix: '',
-                prefix: ''),
+                prefix: '',
+                disabled: false),
           ],
         ),
       ),
@@ -491,9 +503,9 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         Table(
           columnWidths: const {
             0: FlexColumnWidth(1.5), // Price
-            1: FlexColumnWidth(2.2), // Date
+            1: FlexColumnWidth(2.5), // Date
             2: FlexColumnWidth(1.5), // C/F
-            3: FlexColumnWidth(2), // Select (Radio Button)
+            3: FlexColumnWidth(1.2), // Select (Radio Button)
           },
           border: TableBorder.all(color: Colors.grey),
           children: [
@@ -587,7 +599,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: GestureDetector(
                         onTap: () async {
-                          final selectedDate = await _selectDate();
+                          final selectedDate = await _selectDate(false);
                           if (selectedDate != null) {
                             setState(() {
                               previousPrices[index]['date'] =
@@ -717,9 +729,15 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               Navigator.pop(context);
             },
           ),
-          title: Text(
-            'Edit Item',
-            style: GoogleFonts.poppins(color: Colors.white),
+          title: TextField(
+            controller: koduController,
+            style: GoogleFonts.poppins(color: Colors.white, fontSize: 20),
+            cursorColor: Colors.white,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Enter Kodu',
+              hintStyle: GoogleFonts.poppins(color: Colors.white54),
+            ),
           ),
           backgroundColor: const Color(0xffa4392f),
           actions: [
@@ -739,50 +757,43 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              buildEditableCard('Item Name', nameController),
-              const SizedBox(
-                height: 10,
-              ),
-              buildEditableRow(
-                  'Kodu', koduController, 'Kalite', kaliteController, '', ''),
-              buildEditableRow('Eni', eniController, 'Gramaj', gramajController,
-                  'CM', 'GSM'),
-              buildEditableRow('Supplier', supplierController, 'Item No.',
-                  itemNoController, '', ''),
-              const SizedBox(height: 10),
-              buildTextField(
-                  controller: NOTController,
-                  label: 'NOT',
-                  enabled: true,
-                  suffix: '',
-                  prefix: ''),
-              const SizedBox(height: 10),
-              if (widget.SelectedItems == 'Naylon')
-                buildTextField(
-                    controller: CompositionController,
-                    label: 'Composition',
-                    enabled: true,
-                    suffix: '',
-                    prefix: ''),
+              // buildEditableCard('Item Name', nameController),
+              // const SizedBox(
+              //   height: 10,
+              // ),
               Row(
                 children: [
                   Expanded(
                     child: buildTextField(
-                        controller: priceController,
-                        label: 'Price',
-                        enabled: false,
-                        suffix: '',
-                        prefix: '\$ '),
+                      controller: nameController,
+                      label: 'Item name',
+                      enabled: true,
+                      suffix: '',
+                      prefix: '',
+                      disabled: false,
+                    ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(
+                    width: 10,
+                  ),
                   Expanded(
-                    child: AbsorbPointer(
-                      child: buildTextField(
-                        controller: dateController,
-                        label: 'Date',
-                        enabled: false,
-                        suffix: '',
-                        prefix: '',
+                    child: GestureDetector(
+                      onTap: () async {
+                        final selecteddate = await _selectDate(true);
+                        if (selecteddate != null) {
+                          indateController.text =
+                              _dateFormat.format(selecteddate);
+                        }
+                      },
+                      child: AbsorbPointer(
+                        child: buildTextField(
+                          controller: indateController,
+                          label: 'Giriş  Tarihi',
+                          enabled: true,
+                          suffix: '',
+                          prefix: '',
+                          disabled: false,
+                        ),
                       ),
                     ),
                   ),
@@ -791,6 +802,78 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               const SizedBox(
                 height: 10,
               ),
+              // buildEditableRow(
+              //     'Kodu', koduController, 'Kalite', kaliteController, '', ''),
+              buildEditableRow('Eni', eniController, 'Gramaj', gramajController,
+                  'CM', 'GSM'),
+              buildEditableRow('Supplier', supplierController, 'Item No.',
+                  itemNoController, '', ''),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildTextField(
+                      controller: kaliteController,
+                      label: 'Kalitle',
+                      enabled: true,
+                      suffix: '',
+                      prefix: '',
+                      disabled: false,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: buildTextField(
+                        controller: NOTController,
+                        label: 'NOT',
+                        enabled: true,
+                        suffix: '',
+                        prefix: '',
+                        disabled: false),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (widget.SelectedItems == 'Naylon')
+                buildTextField(
+                    controller: CompositionController,
+                    label: 'Composition',
+                    enabled: true,
+                    suffix: '',
+                    prefix: '',
+                    disabled: false),
+              // const SizedBox(height: 10),
+              // Row(
+              //   children: [
+              //     Expanded(
+              //       child: AbsorbPointer(
+              //         child: buildTextField(
+              //             controller: priceController,
+              //             label: 'Price',
+              //             enabled: true,
+              //             suffix: '',
+              //             prefix: '\$ ',
+              //             disabled: true),
+              //       ),
+              //     ),
+              //     const SizedBox(width: 10),
+              //     Expanded(
+              //       child: AbsorbPointer(
+              //         child: buildTextField(
+              //           controller: dateController,
+              //           label: 'Date',
+              //           enabled: true,
+              //           suffix: '',
+              //           prefix: '',
+              //           disabled: true,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 10,
+              // ),
               buildPreviousPricesTable(),
             ],
           ),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gsheets/gsheets.dart';
 import 'package:intl/intl.dart';
-import 'package:oz/Screens/itemsScreen.dart';
 
 class GsheetAPI {
   final String SelectedItems;
@@ -61,12 +60,16 @@ class GsheetAPI {
         if (headers[j] == 'S/Item Name') {
           headers[j] = 'Item Name';
         }
+        if (headers[j] == 'Giriş Tarihi') {
+          headers[j] = 'G-Tarihi';
+        }
 
         // Check if the value is a serial number and convert it to a date
         dynamic value = row.length > j ? row[j] : '';
-        item[headers[j]] = (headers[j] == 'Date' && value != '')
-            ? convertSerialToDate(value)
-            : value;
+        item[headers[j]] =
+            ((headers[j] == 'Date' || headers[j] == 'G-Tarihi') && value != '')
+                ? convertSerialToDate(value)
+                : value;
 
         // row[9] = row.length > j ? convertSerialToDate(row[9]) : '';
       }
@@ -76,10 +79,17 @@ class GsheetAPI {
       item.remove('price');
       item.remove('C/F');
       item.remove('date');
+      late int start_of_previous_prices;
+
+      if (this.SelectedItems == 'Polyester') {
+        start_of_previous_prices = 11;
+      } else {
+        start_of_previous_prices = 12;
+      }
 
       // Constructing Previous_Prices as an array of maps
       List<Map<String, dynamic>> previousPrices = [];
-      for (int j = 11; j < row.length; j += 3) {
+      for (int j = start_of_previous_prices; j < row.length; j += 3) {
         if (row[j].isNotEmpty || row.length > j + 2) {
           Map<String, dynamic> priceMap = {
             'price': row.length > j ? row[j] : '',
@@ -97,13 +107,13 @@ class GsheetAPI {
     return items;
   }
 
-// Helper function to check if a string is a numeric value
-  bool isNumeric(String s) {
-    if (s == null) {
-      return false;
-    }
-    return double.tryParse(s) != null;
-  }
+// // Helper function to check if a string is a numeric value
+//   bool isNumeric(String s) {
+//     if (s == null) {
+//       return false;
+//     }
+//     return double.tryParse(s) != null;
+//   }
 
 // Function to convert Google Sheets serial number to DateTime and format it
   String convertSerialToDate(String serial) {
@@ -112,7 +122,7 @@ class GsheetAPI {
     final DateTime date = baseDate.add(Duration(days: daysSinceBase));
 
     // Return the date in the yyyy-MM-dd format
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormat('MMM d, yyyy').format(date);
   }
 
   Future<void> checkingSimilarity(BuildContext context) async {
@@ -172,6 +182,7 @@ class GsheetAPI {
 
       // Check field by field for changes
       if (sheetItem?['Kodu'] != firestoreItem['Kodu'] ||
+          sheetItem?['G-Tarihi'] != firestoreItem['G-Tarihi'] ||
           sheetItem?['Kalite'] != firestoreItem['Kalite'] ||
           sheetItem?['Eni'] != firestoreItem['Eni'] ||
           sheetItem?['Gramaj'] != firestoreItem['Gramaj'] ||
@@ -321,35 +332,36 @@ class GsheetAPI {
     return sheetDataMap;
   }
 
-  Future<void> addingNewItem(
-      {required kodu,
-      required itemName,
-      required eni,
-      required gramaj,
-      required price,
-      required date,
-      required supplier,
-      required kalite,
-      required not,
-      required itemNo,
-      composition}) async {
-    await init();
-    final newItem = {
-      'Kodu': kodu,
-      'Item Name': itemName,
-      'Eni': eni,
-      'Gramaj': gramaj,
-      'Price': price,
-      'Date': date,
-      'Supplier': supplier,
-      'Kalite': kalite,
-      'NOT': not,
-      'Item No': itemNo,
-      'Previous_Prices': [],
-      if (this.SelectedItems == 'Naylon') 'Composition': composition,
-    };
-    await worksheet!.values.appendRow(newItem.values.toList());
-  }
+  // Future<void> addingNewItem(
+  //     {required kodu,
+  //     required itemName,
+  //     required eni,
+  //     required gramaj,
+  //     required price,
+  //     required date,
+  //     required supplier,
+  //     required kalite,
+  //     required not,
+  //     required itemNo,
+  //     composition}) async {
+  //   await init();
+  //   final newItem = {
+  //     'Kodu': kodu,
+  //     'G-Tarihi':
+  //     'Item Name': itemName,
+  //     'Eni': eni,
+  //     'Gramaj': gramaj,
+  //     'Price': price,
+  //     'Date': date,
+  //     'Supplier': supplier,
+  //     'Kalite': kalite,
+  //     'NOT': not,
+  //     'Item No': itemNo,
+  //     'Previous_Prices': [],
+  //     if (this.SelectedItems == 'Naylon') 'Composition': composition,
+  //   };
+  //   await worksheet!.values.appendRow(newItem.values.toList());
+  // }
 
 // NEED THIS ...
   Future<void> uploadDataToFirestore() async {
@@ -489,6 +501,7 @@ class GsheetAPI {
     // Define headers for Polyester
     List<String> headers = [
       'Kodu',
+      'Giriş Tarihi',
       'Kalite',
       'Eni',
       'Gramaj',
@@ -511,6 +524,7 @@ class GsheetAPI {
       final data = doc.data();
       List<dynamic> row = [
         data['Kodu'],
+        data['G-Tarihi'],
         data['Kalite'],
         data['Eni'],
         data['Gramaj'],
@@ -566,6 +580,7 @@ class GsheetAPI {
     // Define headers for Naylon
     List<String> headers = [
       'Kodu',
+      'Giriş Tarihi',
       'Kalite',
       'Eni',
       'Gramaj',
@@ -588,6 +603,7 @@ class GsheetAPI {
       final data = doc.data();
       List<dynamic> row = [
         data['Kodu'],
+        data['G-Tarihi'],
         data['Kalite'],
         data['Eni'],
         data['Gramaj'],
