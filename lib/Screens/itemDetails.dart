@@ -23,6 +23,8 @@ class ItemDetailsScreen extends StatefulWidget {
 }
 
 class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
+  Map<String, dynamic> initialItem = {};
+
   TextEditingController koduController = TextEditingController();
   TextEditingController kaliteController = TextEditingController();
   TextEditingController eniController = TextEditingController();
@@ -157,6 +159,23 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     if (widget.SelectedItems == 'Naylon') {
       CompositionController.text = widget.item['Composition'] ?? '';
     }
+
+    initialItem = {
+      'Kodu': koduController.text,
+      'Kalite': kaliteController.text,
+      'Eni': eniController.text,
+      'Gramaj': gramajController.text,
+      'Supplier': supplierController.text,
+      'Item No': itemNoController.text,
+      'Item Name': nameController.text,
+      'Price': priceController.text,
+      'Date': dateController.text,
+      'G-Tarihi': indateController.text,
+      'NOT': NOTController.text,
+      'Previous_Prices': List<Map<String, dynamic>>.from(previousPrices),
+      if (widget.SelectedItems == 'Naylon')
+        'Composition': CompositionController.text,
+    };
 
     // Set the default selected index based on matching values
     _selectedPriceIndex = -1; // Default to -1 (no selection)
@@ -709,12 +728,119 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     }
   }
 
+  bool _hasChanges() {
+    // Compare the current values with initialItem
+    //  print(""" ${initialItem['Kodu']}  ${koduController.text}\n
+    //  ${initialItem['Kalite']}  ${kaliteController.text}\n
+    //   ${initialItem['Gramaj']}  ${gramajController.text}\n
+    //   ${initialItem['Supplier']}  ${supplierController.text}\n
+    //  ${initialItem['Item No']}  ${itemNoController.text}\n
+    //   ${initialItem['Item Name']}  ${nameController.text}\n
+    //   ${initialItem['Price']}  ${priceController.text}\n
+    // ${initialItem['Date']}  ${dateController.text}\n
+    //   ${initialItem['G-Tarihi']}  ${indateController.text}\n
+    // ${initialItem['NOT']}  ${NOTController.text}\n
+    //  ${initialItem['Previous_Prices']} \n\n ${previousPrices}\n""");
+
+    return initialItem['Kodu'] != koduController.text ||
+        initialItem['Kalite'] != kaliteController.text ||
+        initialItem['Eni'] != eniController.text ||
+        initialItem['Gramaj'] != gramajController.text ||
+        initialItem['Supplier'] != supplierController.text ||
+        initialItem['Item No'] != itemNoController.text ||
+        initialItem['Item Name'] != nameController.text ||
+        initialItem['Price'] != priceController.text ||
+        initialItem['Date'] != dateController.text ||
+        initialItem['G-Tarihi'] != indateController.text ||
+        initialItem['NOT'] != NOTController.text ||
+        !comparePreviousPrices(
+            initialItem['Previous_Prices'], previousPrices) ||
+        (widget.SelectedItems == 'Naylon' &&
+            initialItem['Composition'] != CompositionController.text);
+  }
+
+  Future<bool?> _showSaveDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // Rounded corners
+          ),
+          backgroundColor: Colors.white, // Background color
+          title: Text(
+            'Unsaved Changes',
+            style: GoogleFonts.poppins(
+              color: const Color(0xffa4392f), // Title text color
+              fontWeight: FontWeight.bold, // Bold styling for emphasis
+            ),
+          ),
+          content: Text(
+            'You have unsaved changes. Do you want to save them before exiting?',
+            style: GoogleFonts.poppins(
+              color: Colors.black87, // Content text color
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // Cancel the pop
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      color:
+                          const Color(0xffa4392f), // 'Cancel' button text color
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // Pop after saving
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(
+                        0xffa4392f), // 'Save' button background color
+                  ),
+                  child: Text(
+                    'Save',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white, // 'Save' button text color
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        await saveChangesToFirebase();
-        return true; // Allows the pop to proceed after saving
+        // await saveChangesToFirebase();
+        // return true; // Allows the pop to proceed after saving
+        // Check if there are any changes between initialItem and current values
+        bool hasChanges = _hasChanges();
+
+        if (hasChanges) {
+          // Show a confirmation dialog if there are unsaved changes
+          bool? saveData = await _showSaveDialog(context);
+          if (saveData == true) {
+            // Save data logic here
+            // Optionally call a save function
+            await saveChangesToFirebase();
+          }
+          return saveData != null; // Pop only if the user decides
+        } else {
+          return true; // No changes, pop the screen
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -724,8 +850,23 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               Icons.arrow_back,
               color: Colors.white,
             ),
-            onPressed: () {
-              saveChangesToFirebase();
+            onPressed: () async {
+              bool hasChanges = _hasChanges();
+              // print("MR.catnoir: $hasChanges");
+
+              if (hasChanges) {
+                // Show a confirmation dialog if there are unsaved changes
+                bool? saveData = await _showSaveDialog(context);
+                if (saveData == true) {
+                  // Save data logic here
+                  // Optionally call a save function
+                  await saveChangesToFirebase();
+                }
+                // Pop only if the user decides
+              } else {
+                // No changes, pop the screen
+              }
+              // saveChangesToFirebase();
               Navigator.pop(context);
             },
           ),

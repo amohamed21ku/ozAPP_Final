@@ -690,6 +690,8 @@ class ItemsScreenState extends State<ItemsScreen> {
         filteredList = dataList
             .where((item) =>
                 item['Kodu'].toLowerCase().contains(query.toLowerCase()) ||
+                item['Kalite'].toLowerCase().contains(query.toLowerCase()) ||
+                item['Item No'].toLowerCase().contains(query.toLowerCase()) ||
                 item['Item Name'].toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
@@ -719,11 +721,12 @@ class ItemsScreenState extends State<ItemsScreen> {
           duration: const Duration(milliseconds: 300),
           child: isSearching
               ? TextField(
+                  cursorColor: Colors.white,
                   key: const ValueKey('searchBar'),
                   controller: searchController,
                   autofocus: true,
                   decoration: InputDecoration(
-                    hintText: 'Search by Kodu or Name',
+                    hintText: 'Search for Item',
                     border: InputBorder.none,
                     hintStyle: GoogleFonts.poppins(color: Colors.white),
                   ),

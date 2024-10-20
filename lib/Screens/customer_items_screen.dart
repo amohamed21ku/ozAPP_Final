@@ -207,7 +207,8 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
           actions: [
             IconButton(
               icon: const Icon(
-                Icons.add,
+                Icons.add_box_rounded,
+                size: 30,
                 color: Colors.white,
               ),
               onPressed: addItem,
@@ -266,38 +267,63 @@ class _CustomerItemsScreenState extends State<CustomerItemsScreen> {
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      20.0), // Rounded corners
+                                ),
+                                backgroundColor:
+                                    Colors.white, // Background color
                                 title: Text(
                                   'Confirm Delete',
                                   style: GoogleFonts.poppins(
-                                    color: const Color(0xffa4392f),
+                                    color: const Color(
+                                        0xffa4392f), // Title text color
+                                    fontWeight: FontWeight
+                                        .bold, // Bold styling for emphasis
                                   ),
                                 ),
                                 content: Text(
                                   'Do you want to delete this Sample with Kodu ${filteredItems[index]['kodu']}?',
-                                  style: GoogleFonts.poppins(),
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black87, // Content text color
+                                  ),
                                 ),
                                 actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(false);
-                                    },
-                                    child: Text(
-                                      'No',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(0xffa4392f),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context)
+                                              .pop(false); // 'No' response
+                                        },
+                                        child: Text(
+                                          'No',
+                                          style: GoogleFonts.poppins(
+                                            color: const Color(
+                                                0xffa4392f), // 'No' button text color
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: Text(
-                                      'Yes',
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(0xffa4392f),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.of(context)
+                                              .pop(true); // 'Yes' response
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                              0xffa4392f), // 'Yes' button background color
+                                        ),
+                                        child: Text(
+                                          'Yes',
+                                          style: GoogleFonts.poppins(
+                                            color: Colors
+                                                .white, // 'Yes' button text color
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
                                 ],
                               );
