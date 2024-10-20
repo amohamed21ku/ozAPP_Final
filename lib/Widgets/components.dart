@@ -561,39 +561,27 @@ class CustomItems extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: filteredList.length,
                   itemBuilder: (context, index) {
-                    return edit
-                        ? EditCard(
-                            index: index,
-                            item: filteredList[index],
-                            onDelete: (int index) {
-                              deleteItem(index);
-                            },
-                            selectDate: selectDate,
-                            confirmDeleteItem: confirmDeleteItem,
-                            columnOrder: columnOrder,
-                            columnVisibility: columnVisibility,
-                          )
-                        : GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ItemDetailsScreen(
-                                          index: index,
-                                          SelectedItems: SelectedItems,
-                                          item: filteredList[index],
-                                          docId: filteredList[index]['id'],
-                                        )),
-                              ).then((_) {
-                                fetchDataForSelectedItem;
-                              });
-                            },
-                            child: ItemCard(
-                              Item: filteredList[index],
-                              columnOrder: columnOrder,
-                              columnVisibility: columnVisibility,
-                              index: index,
-                            ));
+                    return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ItemDetailsScreen(
+                                      index: index,
+                                      SelectedItems: SelectedItems,
+                                      item: filteredList[index],
+                                      docId: filteredList[index]['id'],
+                                    )),
+                          ).then((_) {
+                            fetchDataForSelectedItem;
+                          });
+                        },
+                        child: ItemCard(
+                          Item: filteredList[index],
+                          columnOrder: columnOrder,
+                          columnVisibility: columnVisibility,
+                          index: index,
+                        ));
                   },
                 ),
               ),
@@ -728,6 +716,7 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final pre;
   final suf;
+  final bool enabled;
 
   const CustomTextField({
     super.key,
@@ -735,11 +724,13 @@ class CustomTextField extends StatelessWidget {
     required this.controller,
     this.pre,
     this.suf,
+    required this.enabled,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: enabled,
       controller: controller,
       cursorColor: const Color(0xffa4392f),
       style: GoogleFonts.poppins(
