@@ -122,7 +122,19 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             .doc(widget.docId)
             .update({'Previous_Prices': previousPrices});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Row deleted successfully')),
+          SnackBar(
+            content: Text(
+              'Price deleted successfully',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor:
+                const Color(0xffa4392f), // Match the app theme color
+            duration: const Duration(
+                seconds: 1), // How long the snackbar will be displayed
+          ),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -349,7 +361,19 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Changes saved successfully')),
+          SnackBar(
+            content: Text(
+              'Changes saved successfully',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor:
+                const Color(0xffa4392f), // Match the app theme color
+            duration: const Duration(
+                seconds: 1), // How long the snackbar will be displayed
+          ),
         );
       }
     } catch (e) {
@@ -713,35 +737,37 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   }
 
   void deleteItem() async {
-    // If it's an existing item, delete directly from Firebase
-
     try {
+      // If it's an existing item, delete directly from Firebase
       await FirebaseFirestore.instance
           .collection(widget.SelectedItems)
           .doc(widget.item['id'])
           .delete();
+
+      // Upload data to Google Sheets after deletion
       GsheetAPI(SelectedItems: widget.SelectedItems).uploadDataToGoogleSheet();
-      // print(widget.item);
+
+      // Show a SnackBar with the deleted item's Kodu
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Item ${widget.item['Kodu']} is deleted',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: const Color(0xffa4392f), // Match the app theme color
+          duration: const Duration(seconds: 1), // Display duration
+        ),
+      );
     } catch (e) {
-      // print('Error deleting item: $e');
       // Handle error if deletion fails
+      print('Error deleting item: $e');
     }
   }
 
   bool _hasChanges() {
-    // Compare the current values with initialItem
-    //  print(""" ${initialItem['Kodu']}  ${koduController.text}\n
-    //  ${initialItem['Kalite']}  ${kaliteController.text}\n
-    //   ${initialItem['Gramaj']}  ${gramajController.text}\n
-    //   ${initialItem['Supplier']}  ${supplierController.text}\n
-    //  ${initialItem['Item No']}  ${itemNoController.text}\n
-    //   ${initialItem['Item Name']}  ${nameController.text}\n
-    //   ${initialItem['Price']}  ${priceController.text}\n
-    // ${initialItem['Date']}  ${dateController.text}\n
-    //   ${initialItem['G-Tarihi']}  ${indateController.text}\n
-    // ${initialItem['NOT']}  ${NOTController.text}\n
-    //  ${initialItem['Previous_Prices']} \n\n ${previousPrices}\n""");
-
     return initialItem['Kodu'] != koduController.text ||
         initialItem['Kalite'] != kaliteController.text ||
         initialItem['Eni'] != eniController.text ||
@@ -852,7 +878,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             ),
             onPressed: () async {
               bool hasChanges = _hasChanges();
-              // print("MR.catnoir: $hasChanges");
 
               if (hasChanges) {
                 // Show a confirmation dialog if there are unsaved changes

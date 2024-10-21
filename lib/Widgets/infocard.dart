@@ -185,7 +185,19 @@ class InfoCard extends StatelessWidget {
           // Perform deletion here if confirmed
           await deleteCustomer(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$name deleted')),
+            SnackBar(
+              content: Text(
+                '$name deleted',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              backgroundColor:
+                  const Color(0xffa4392f), // Match the app theme color
+              duration: const Duration(
+                  seconds: 2), // How long the snackbar will be displayed
+            ),
           );
         },
         background: Container(

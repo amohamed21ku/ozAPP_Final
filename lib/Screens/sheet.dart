@@ -114,7 +114,7 @@ class _ordersSheetState extends State<ordersSheet> {
             color: Colors.white,
           ),
           onPressed: () {
-            _saveData();
+            // _saveData();
             Navigator.pop(context);
           },
         ),
@@ -211,6 +211,8 @@ class _ordersSheetState extends State<ordersSheet> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+              _buildSaveButton(),
             ],
           ),
         ),
@@ -350,6 +352,32 @@ class _ordersSheetState extends State<ordersSheet> {
     );
   }
 
+  Widget _buildSaveButton() {
+    return ElevatedButton.icon(
+      onPressed: _saveData, // Save data when the button is clicked
+      icon: const Icon(
+        Icons.save,
+        color: Colors.white,
+      ),
+      label: Text(
+        'Save',
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          color: Colors.white,
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            const Color(0xffa4392f), // Save button background color
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6), // Rounded corners
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+      ),
+    );
+  }
+
   double _calculateTotalGoodsAmount() {
     double total = 0;
     for (var row in _data) {
@@ -384,6 +412,21 @@ class _ordersSheetState extends State<ordersSheet> {
     await _firestore.collection('customers').doc(widget.customer.cid).update({
       'goods': updatedGoods,
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Data saved successfully!',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color(0xffa4392f), // Match the app theme color
+        duration: const Duration(
+            seconds: 2), // How long the snackbar will be displayed
+      ),
+    );
   }
 
   @override
