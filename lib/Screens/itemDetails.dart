@@ -301,9 +301,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         'Composition': CompositionController.text,
     };
 
-    print(widget.item['G-Tarihi']);
-    print(updatedData['G-Tarihi']);
-
     //
     // print(!comparePreviousPrices(
     //     updatedData['Previous_Prices'], widget.item['Previous_Prices']));
@@ -763,7 +760,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       );
     } catch (e) {
       // Handle error if deletion fails
-      print('Error deleting item: $e');
     }
   }
 

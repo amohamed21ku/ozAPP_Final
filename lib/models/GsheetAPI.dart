@@ -24,7 +24,7 @@ class GsheetAPI {
 }
   ''';
 
-  static final _spreadsheetId = '1sSOWqyP0VTg_Qn-Bo_dUeG20lTmrUcSXaVniPZ56sIU';
+  static const _spreadsheetId = '1sSOWqyP0VTg_Qn-Bo_dUeG20lTmrUcSXaVniPZ56sIU';
   static final _gsheets = GSheets(_credentials);
   static Worksheet? worksheet;
 
@@ -81,7 +81,7 @@ class GsheetAPI {
       item.remove('date');
       late int start_of_previous_prices;
 
-      if (this.SelectedItems == 'Polyester') {
+      if (SelectedItems == 'Polyester') {
         start_of_previous_prices = 11;
       } else {
         start_of_previous_prices = 12;
@@ -162,8 +162,9 @@ class GsheetAPI {
       // Function to compare the Previous_Prices list of maps
       bool comparePreviousPrices(
           List<dynamic>? sheetPrices, List<dynamic>? firestorePrices) {
-        if (sheetPrices == null || sheetPrices.isEmpty)
+        if (sheetPrices == null || sheetPrices.isEmpty) {
           return firestorePrices == null || firestorePrices.isEmpty;
+        }
         if (firestorePrices == null || firestorePrices.isEmpty) return false;
         if (sheetPrices.length != firestorePrices.length) return false;
 
@@ -194,7 +195,7 @@ class GsheetAPI {
           sheetItem?['NOT'] != firestoreItem['NOT'] ||
           !comparePreviousPrices(sheetItem?['Previous_Prices'],
               firestoreItem['Previous_Prices']) ||
-          (this.SelectedItems == 'Naylon' &&
+          (SelectedItems == 'Naylon' &&
               sheetItem?['Composition'] != firestoreItem['Composition'])) {
         changes.add(kodu);
         hasChanges = true;
@@ -213,11 +214,21 @@ class GsheetAPI {
     if (identical && !hasChanges) {
       // Show Snackbar if identical
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google Sheets and App data are identical!')),
+        SnackBar(
+          content: Text(
+            'Google Sheet and App data are identical!',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: const Color(0xffa4392f), // Match the app theme color
+          duration: const Duration(
+              seconds: 2), // How long the snackbar will be displayed
+        ),
       );
     } else {
       // Build a list of discrepancies
-      String message = '';
 
 // Create text spans for each part of the message
       List<TextSpan> messageSpans = [];
@@ -401,8 +412,7 @@ class GsheetAPI {
       final docRef = firestore.collection(SelectedItems).doc(docId);
       // Filter out any fields that are null or empty
       final cleanedItem = Map<String, dynamic>.from(item)
-        ..removeWhere(
-            (key, value) => key == null || key.isEmpty || value == null);
+        ..removeWhere((key, value) => key.isEmpty || value == null);
 
       batch.set(docRef, cleanedItem);
     });
@@ -424,7 +434,7 @@ class GsheetAPI {
           title: Text(
             'Warning !!',
             style: GoogleFonts.poppins(
-              color: Color(0xffa4392f), // Red text for the warning
+              color: const Color(0xffa4392f), // Red text for the warning
               fontWeight: FontWeight.bold,
               fontSize: 20.0,
             ),
@@ -456,8 +466,8 @@ class GsheetAPI {
               child: Text(
                 'Continue',
                 style: GoogleFonts.poppins(
-                  color:
-                      Color(0xffa4392f), // Green color for the continue button
+                  color: const Color(
+                      0xffa4392f), // Green color for the continue button
                   fontWeight: FontWeight.w600,
                 ),
               ),

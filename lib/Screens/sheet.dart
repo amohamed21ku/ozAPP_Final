@@ -15,6 +15,8 @@ class ordersSheet extends StatefulWidget {
 
 class _ordersSheetState extends State<ordersSheet> {
   final List<Map<String, dynamic>> _data = [];
+  final List<Map<String, dynamic>> _initialData = []; // To store initial data
+
   final List<TextEditingController> _descriptionControllers = [];
   final List<TextEditingController> _quantityControllers = [];
   final List<TextEditingController> _unitPriceControllers = [];
@@ -113,10 +115,11 @@ class _ordersSheetState extends State<ordersSheet> {
             Icons.arrow_back,
             color: Colors.white,
           ),
-          onPressed: () {
-            // _saveData();
-            Navigator.pop(context);
-          },
+          onPressed: _onWillPop,
+          //     () {
+          //   // _saveData();
+          //   Navigator.pop(context);
+          // },
         ),
         actions: [
           IconButton(
@@ -211,8 +214,6 @@ class _ordersSheetState extends State<ordersSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              _buildSaveButton(),
             ],
           ),
         ),
@@ -352,32 +353,6 @@ class _ordersSheetState extends State<ordersSheet> {
     );
   }
 
-  Widget _buildSaveButton() {
-    return ElevatedButton.icon(
-      onPressed: _saveData, // Save data when the button is clicked
-      icon: const Icon(
-        Icons.save,
-        color: Colors.white,
-      ),
-      label: Text(
-        'Save',
-        style: GoogleFonts.poppins(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          color: Colors.white,
-        ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor:
-            const Color(0xffa4392f), // Save button background color
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6), // Rounded corners
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-      ),
-    );
-  }
-
   double _calculateTotalGoodsAmount() {
     double total = 0;
     for (var row in _data) {
@@ -409,10 +384,15 @@ class _ordersSheetState extends State<ordersSheet> {
       });
     }
 
+    // Perform the save operation to Firestore
     await _firestore.collection('customers').doc(widget.customer.cid).update({
       'goods': updatedGoods,
     });
 
+    // Check if the widget is still mounted before updating the UI
+    if (!mounted) return;
+
+    // Display a success message using the ScaffoldMessenger
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -423,8 +403,7 @@ class _ordersSheetState extends State<ordersSheet> {
           ),
         ),
         backgroundColor: const Color(0xffa4392f), // Match the app theme color
-        duration: const Duration(
-            seconds: 2), // How long the snackbar will be displayed
+        duration: const Duration(seconds: 1), // Display duration
       ),
     );
   }
@@ -481,7 +460,106 @@ class _ordersSheetState extends State<ordersSheet> {
             .add(TextEditingController(text: amount?.toString() ?? ''));
       }
     }
+    // Save the initial data for comparison
+    // Deep copy the initial data
+    // Clear previous initial data if any
+    _initialData.clear();
+
+// Deep copy each map in _data to _initialData
+    _initialData
+        .addAll(_data.map((item) => Map<String, dynamic>.from(item)).toList());
+
+    print("First: $_initialData");
 
     setState(() => isLoading = false);
+  }
+
+  Future<bool> _checkForChanges() async {
+    // Check if a new item was added or removed
+    if (_data.length != _initialData.length) {
+      return true; // A row was added or removed, so it's a change
+    }
+
+    // Check if any item values were changed
+    for (int i = 0; i < _data.length; i++) {
+      if (_data[i]['description'] != _initialData[i]['description'] ||
+          _data[i]['quantity'] != _initialData[i]['quantity'] ||
+          _data[i]['unitPrice'] != _initialData[i]['unitPrice'] ||
+          _data[i]['amount'] != _initialData[i]['amount']) {
+        return true; // There are changes
+      }
+    }
+
+    return false; // No changes
+  }
+
+  Future<void> _onWillPop() async {
+    bool hasChanges = await _checkForChanges();
+    if (hasChanges) {
+      bool? save = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0), // Rounded corners
+            ),
+            backgroundColor: Colors.white, // Background color
+            title: Text(
+              'Unsaved Changes',
+              style: GoogleFonts.poppins(
+                color: const Color(0xffa4392f), // Title text color
+                fontWeight: FontWeight.bold, // Bold styling for emphasis
+              ),
+            ),
+            content: Text(
+              'Do you want to save your changes?',
+              style: GoogleFonts.poppins(
+                color: Colors.black87, // Content text color
+              ),
+            ),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false); // Don't save
+                    },
+                    child: Text(
+                      'No',
+                      style: GoogleFonts.poppins(
+                        color:
+                            const Color(0xffa4392f), // 'No' button text color
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _saveData(); // Save data
+                      Navigator.of(context).pop(true); // Save and exit
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(
+                          0xffa4392f), // 'Yes' button background color
+                    ),
+                    child: Text(
+                      'Yes',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white, // 'Yes' button text color
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      );
+
+      if (save ?? false) {
+        _saveData();
+      }
+    }
+    Navigator.pop(context);
   }
 }
