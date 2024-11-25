@@ -341,11 +341,10 @@ class _AddItemSheetState extends State<AddItemSheet> {
 
       if (doc.exists) {
         setState(() {
-          nameController.text =
-              doc['Item Name'] ?? ''; // Auto-fill name if found
+          nameController.text = doc['Kalite'] ?? ''; // Auto-fill name if found
         });
       } else {
-        print("not exist");
+        // print("not exist");
         setState(() {
           nameController.clear(); // Clear name if no match found
         });
@@ -466,7 +465,7 @@ class _AddItemSheetState extends State<AddItemSheet> {
                             Expanded(
                               child: _buildCustomTextField(
                                 controller: nameController,
-                                label: 'Name',
+                                label: 'Kalite',
                               ),
                             ),
                           ],

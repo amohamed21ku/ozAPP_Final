@@ -165,7 +165,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     controller: koduController, label: 'Kodu'),
                 const SizedBox(height: 8),
                 _buildCustomTextField(
-                    controller: nameController, label: 'Name'),
+                    controller: nameController, label: 'Kalite'),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () async {
