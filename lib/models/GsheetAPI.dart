@@ -379,7 +379,6 @@ class GsheetAPI {
     final firestore = FirebaseFirestore.instance;
     final sheetData = await fetchSheetData();
     final firestoreData = await fetchFirestoreData();
-
     // Helper function to convert serial number to Date
     DateTime convertSerialToDate(double serial) {
       return DateTime(1899, 12, 30).add(Duration(days: serial.toInt()));
@@ -395,10 +394,8 @@ class GsheetAPI {
               'Date': convertSerialToDate(item['Date']).toIso8601String(),
           }
     };
-
     // Start a batch for Firestore writes
     final batch = firestore.batch();
-
     // Delete documents in Firestore that are not present in the sheet data
     firestoreData.forEach((docId, _) {
       if (!sheetDataMap.containsKey(docId)) {
@@ -406,17 +403,14 @@ class GsheetAPI {
         batch.delete(docRef);
       }
     });
-
     // Add or update documents in Firestore based on the sheet data
     sheetDataMap.forEach((docId, item) {
       final docRef = firestore.collection(SelectedItems).doc(docId);
       // Filter out any fields that are null or empty
       final cleanedItem = Map<String, dynamic>.from(item)
         ..removeWhere((key, value) => key.isEmpty || value == null);
-
       batch.set(docRef, cleanedItem);
     });
-
     // Commit the batch
     await batch.commit();
   }
@@ -523,13 +517,10 @@ class GsheetAPI {
       'Date',
       ''
     ];
-
     // Keep track of the maximum number of previous prices encountered
     int maxPreviousPricesCount = 0;
-
     // List to store all data rows (starting with headers)
     List<List<dynamic>> sheetData = [headers]; // Start with static headers
-
     for (var doc in querySnapshot.docs) {
       final data = doc.data();
       List<dynamic> row = [
@@ -545,40 +536,32 @@ class GsheetAPI {
         data['Price'],
         data['Date']
       ];
-
       // Fetch Previous_Prices array
       List previousPrices = data['Previous_Prices'] ?? [];
       int previousPricesCount = previousPrices.length;
-
       // Update the max previous prices count if the current one is higher
       if (previousPricesCount > maxPreviousPricesCount) {
         maxPreviousPricesCount = previousPricesCount;
       }
-
       // Add empty columns if necessary to align Previous_Prices values to start from column 11
       while (row.length < 11) {
         row.add(''); // Add empty cells until reaching column 11
       }
-
       // Add values for each map in Previous_Prices
       for (int i = 0; i < previousPricesCount; i++) {
         row.add(previousPrices[i]['price'] ?? ''); // Price value
         row.add(previousPrices[i]['C/F'] ?? ''); // C/F value
         row.add(previousPrices[i]['date'] ?? ''); // Date value
       }
-
       sheetData.add(row); // Add the row to the sheet data
     }
-
     // Add headers for Previous_Prices based on max count encountered
     for (int i = 0; i < maxPreviousPricesCount; i++) {
       headers.add('price'); // Add 'price' header for each map
       headers.add('C/F'); // Add 'C/F' header for each map
       headers.add('date'); // Add 'date' header for each map
     }
-
     await init();
-
     await worksheet!.clear();
     await worksheet!.values.insertRows(1, sheetData);
   }

@@ -5,7 +5,7 @@ import 'package:oz/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Screens/balancesheet.dart';
-import 'Screens/customerScreen.dart';
+import 'Screens/customerScreen_first.dart';
 import 'Screens/homeScreen.dart';
 import 'Screens/itemsScreen.dart';
 import 'Screens/login_screen.dart';

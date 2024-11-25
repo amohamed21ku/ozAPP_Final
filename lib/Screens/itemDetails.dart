@@ -162,6 +162,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     NOTController.text = widget.item['NOT'] ?? '';
 
     // Deep copy of Previous_Prices
+
     previousPrices = List<Map<String, dynamic>>.from(
       widget.item['Previous_Prices']
               ?.map((price) => Map<String, dynamic>.from(price)) ??
@@ -259,12 +260,12 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
       // print("Sheet price: ${sheetPrice['C/F']}");
       // print("firestore price: ${firestorePrice['C/F']}");
 
-      // print(sheetPrice);
-      // print(firestorePrice);
+      print(sheetPrice);
+      print(firestorePrice);
       //
-      // print("${sheetPrice['price']} != ${firestorePrice['price']}");
-      // print("${sheetPrice['date']} != ${firestorePrice['date']}");
-      // print("${sheetPrice['C/F']} != ${firestorePrice['C/F']}");
+      print("${sheetPrice['price']} != ${firestorePrice['price']}");
+      print("${sheetPrice['date']} != ${firestorePrice['date']}");
+      print("${sheetPrice['C/F']} != ${firestorePrice['C/F']}");
 
       if (sheetPrice['price'] != firestorePrice['price'] ||
           sheetPrice['date'] != firestorePrice['date'] ||
@@ -301,10 +302,6 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
         'Composition': CompositionController.text,
     };
 
-    //
-    // print(!comparePreviousPrices(
-    //     updatedData['Previous_Prices'], widget.item['Previous_Prices']));
-    // Check if any changes occurred
     bool hasChanges = updatedData['Kodu'] != widget.item['Kodu'] ||
         updatedData['Kalite'] != widget.item['Kalite'] ||
         updatedData['Eni'] != widget.item['Eni'] ||
@@ -320,13 +317,12 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             updatedData['Previous_Prices'], widget.item['Previous_Prices']) ||
         (widget.SelectedItems == 'Naylon' &&
             updatedData['Composition'] != widget.item['Composition']);
-
     if (!hasChanges) {
       // If no changes, do nothing
       if (mounted) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(content: Text('No changes detected')),
-        // );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No changes detected')),
+        );
       }
       return;
     }
@@ -874,6 +870,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             ),
             onPressed: () async {
               bool hasChanges = _hasChanges();
+              print(hasChanges);
 
               if (hasChanges) {
                 // Show a confirmation dialog if there are unsaved changes

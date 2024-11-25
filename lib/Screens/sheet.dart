@@ -308,7 +308,7 @@ class _ordersSheetState extends State<ordersSheet> {
         controller: controller,
         keyboardType:
             (field == 'quantity' || field == 'unitPrice' || field == 'amount')
-                ? TextInputType.number
+                ? TextInputType.numberWithOptions(signed: true, decimal: true)
                 : TextInputType.text,
         style: GoogleFonts.poppins(
           fontSize: 13,

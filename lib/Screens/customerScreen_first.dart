@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Widgets/components.dart';
 import '../Widgets/infocard.dart';
 import '../models/Customers.dart';
-import 'customer_items_screen.dart';
+import 'CustomerItemsList.dart';
 
 class CustomerScreen extends StatefulWidget {
   const CustomerScreen({super.key});
@@ -19,7 +19,19 @@ class _CustomerScreenState extends State<CustomerScreen> {
   List<Customer> customers = [];
   List<Customer> filteredCustomers = [];
   bool showSpinner = false;
+  bool isSearching = false; // Flag to toggle search mode
+
   TextEditingController searchController = TextEditingController();
+
+  void toggleSearch() {
+    setState(() {
+      isSearching = !isSearching;
+      if (!isSearching) {
+        searchController.clear();
+        filterData(''); // Reset the filtered list when exiting search
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -183,7 +195,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
     setState(() {
       showSpinner = true; // Show loading HUD
     });
-
     try {
       QuerySnapshot querySnapshot =
           await FirebaseFirestore.instance.collection('customers').get();
@@ -204,10 +215,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
           goods: goods,
         );
       }).toList();
-
       // Initialize filteredCustomers with all customers_
       filteredCustomers = customers;
-
       // Cache the customer data
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('customers',
@@ -215,7 +224,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
     } catch (error) {
       // Handle error here if needed
     }
-
     setState(() {
       showSpinner = false; // Hide loading HUD
     });
@@ -364,6 +372,13 @@ class _CustomerScreenState extends State<CustomerScreen> {
         backgroundColor: const Color(0xffa4392f),
         actions: [
           IconButton(
+            icon: Icon(
+              isSearching ? Icons.close : Icons.search,
+              color: Colors.white,
+            ),
+            onPressed: toggleSearch,
+          ),
+          IconButton(
             icon: const Icon(
               Icons.add_box_rounded,
               color: Colors.white,
@@ -374,22 +389,29 @@ class _CustomerScreenState extends State<CustomerScreen> {
             },
           ),
         ],
-        title: Text(
-          'Customers List',
-          style: GoogleFonts.poppins(
-            fontSize: 16.0,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
+        title: isSearching
+            ? TextField(
+                cursorColor: Colors.white54,
+                controller: searchController,
+                autofocus: true,
+                onChanged: filterData,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search by Kodu or Name',
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: InputBorder.none,
+                ),
+              )
+            : Text(
+                "Customer List",
+                style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white),
+              ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: const Color(0xffa4392f),
-      //   onPressed: () => _addCustomer(context),
-      //   child: const Icon(Icons.add, color: Colors.white),
-      // ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: showSpinner
             ? const Center(
                 child: CircularProgressIndicator(
@@ -403,11 +425,6 @@ class _CustomerScreenState extends State<CustomerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomSearchBar(
-                      searchController: searchController,
-                      onChanged: filterData,
-                      hinttext: 'Search by Name or Company',
-                    ),
                     const SizedBox(
                       height: 10,
                     ),
@@ -425,9 +442,16 @@ class _CustomerScreenState extends State<CustomerScreen> {
                               name: customer.name,
                               company: customer.company,
                               onpress: () {
+                                // Navigator.of(context).push(MaterialPageRoute(
+                                //   builder: (context) => CustomerItemsScreen(
+                                //     customer: customer,
+                                //   ),
+                                // ));
                                 Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) =>
-                                      CustomerItemsScreen(customer: customer),
+                                  builder: (context) => CustomerListScreen(
+                                    customerName: customer.name,
+                                    customerId: customer.cid,
+                                  ),
                                 ));
                               },
                               initial: customer.initial,

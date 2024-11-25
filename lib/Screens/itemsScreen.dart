@@ -24,7 +24,7 @@ class ItemsScreenState extends State<ItemsScreen> {
   String selectedItem = 'Polyester';
 
   List<Map<String, dynamic>> dataList = [];
-  List<Map<String, dynamic>> filteredList = [];
+  static List<Map<String, dynamic>> filteredList = [];
   int ItemCount = 0;
 
   List<Map<String, dynamic>> itemsToDelete = [];
@@ -955,7 +955,6 @@ class ItemsScreenState extends State<ItemsScreen> {
 
           ,
           Expanded(
-            // This ensures the StreamBuilder takes up the remaining space
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection(selectedItem)
@@ -991,35 +990,40 @@ class ItemsScreenState extends State<ItemsScreen> {
                   filteredList = List.from(dataList);
                 }
 
-                // Now return the UI with the filtered list
+                // Reverse the filteredList to show the last item first
+                List reversedList = List.from(filteredList.reversed);
+
+                // Now return the UI with the reversed list
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: ListView.builder(
-                        itemCount: filteredList.length,
+                        itemCount: reversedList.length,
                         itemBuilder: (context, index) {
                           return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ItemDetailsScreen(
-                                            index: index,
-                                            SelectedItems: selectedItem,
-                                            item: filteredList[index],
-                                            docId: filteredList[index]['id'],
-                                          )),
-                                ).then((_) {
-                                  fetchDataForSelectedItem;
-                                });
-                              },
-                              child: ItemCard(
-                                Item: filteredList[index],
-                                columnOrder: columnOrder,
-                                columnVisibility: columnVisibility,
-                                index: index,
-                              ));
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ItemDetailsScreen(
+                                    index: index,
+                                    SelectedItems: selectedItem,
+                                    item: reversedList[index],
+                                    docId: reversedList[index]['id'],
+                                  ),
+                                ),
+                              ).then((_) {
+                                fetchDataForSelectedItem();
+                              });
+                            },
+                            child: ItemCard(
+                              Item: reversedList[index],
+                              columnOrder: columnOrder,
+                              columnVisibility: columnVisibility,
+                              index: index,
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -1027,7 +1031,7 @@ class ItemsScreenState extends State<ItemsScreen> {
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );

@@ -5,6 +5,7 @@ import 'package:oz/Screens/sheet.dart';
 import '../Widgets/components.dart';
 import '../Widgets/infocard.dart';
 import '../models/Customers.dart';
+import 'OrdersScreen.dart';
 
 class BalanceSheet extends StatefulWidget {
   const BalanceSheet({super.key});
@@ -143,6 +144,9 @@ class _BalanceSheetState extends State<BalanceSheet> {
                                   customer: customer,
                                 ),
                               ));
+                              // Navigator.of(context).push(MaterialPageRoute(
+                              //   builder: (context) => OrdersScreen(),
+                              // ));
                             },
                             initial: customer.initial,
                             customerId: customer.cid,
