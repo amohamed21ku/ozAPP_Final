@@ -63,17 +63,16 @@ class _DetailScreenState extends State<DetailScreen> {
 
       if (doc.exists) {
         setState(() {
-          nameController.text =
-              doc['Item Name'] ?? ''; // Auto-fill name if found
+          nameController.text = doc['Kalite'] ?? ''; // Auto-fill name if found
         });
       } else {
-        print("Kodu not found");
+        // print("Kodu not found");
         setState(() {
           nameController.clear(); // Clear name if no match found
         });
       }
     } catch (e) {
-      print('Error fetching name by kodu: $e');
+      // print('Error fetching name by kodu: $e');
     }
   }
 

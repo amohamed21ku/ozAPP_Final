@@ -65,13 +65,13 @@ class InfoCard extends StatelessWidget {
       onTap: onpress,
       child: Material(
         elevation: 3, // Add elevation to the whole container
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.all(10),
           height: 80,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

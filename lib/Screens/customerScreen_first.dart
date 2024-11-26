@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Widgets/components.dart';
 import '../Widgets/infocard.dart';
 import '../models/Customers.dart';
 import 'CustomerItemsList.dart';
@@ -193,7 +192,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
 
   Future<void> fetchCustomers() async {
     setState(() {
-      showSpinner = true; // Show loading HUD
+      showSpinner = true;
     });
     try {
       QuerySnapshot querySnapshot =
@@ -215,9 +214,8 @@ class _CustomerScreenState extends State<CustomerScreen> {
           goods: goods,
         );
       }).toList();
-      // Initialize filteredCustomers with all customers_
+      customers.sort((a, b) => a.name.compareTo(b.name)); // Sort alphabetically
       filteredCustomers = customers;
-      // Cache the customer data
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('customers',
           jsonEncode(customers.map((customer) => customer.toJson()).toList()));
@@ -225,7 +223,7 @@ class _CustomerScreenState extends State<CustomerScreen> {
       // Handle error here if needed
     }
     setState(() {
-      showSpinner = false; // Hide loading HUD
+      showSpinner = false;
     });
   }
 
@@ -429,41 +427,67 @@ class _CustomerScreenState extends State<CustomerScreen> {
                       height: 10,
                     ),
                     Expanded(
-                      child: ListView.separated(
+                      child: ListView.builder(
                         itemCount: filteredCustomers.length,
                         itemBuilder: (context, index) {
                           final customer = filteredCustomers[index];
-                          return GestureDetector(
-                            onLongPress: () {
-                              // edit the customer info
-                              _editCustomer(context, customer);
-                            },
-                            child: InfoCard(
-                              name: customer.name,
-                              company: customer.company,
-                              onpress: () {
-                                // Navigator.of(context).push(MaterialPageRoute(
-                                //   builder: (context) => CustomerItemsScreen(
-                                //     customer: customer,
-                                //   ),
-                                // ));
-                                Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => CustomerListScreen(
-                                    customerName: customer.name,
-                                    customerId: customer.cid,
+                          bool showInitialHeader = index == 0 ||
+                              customer.initial !=
+                                  filteredCustomers[index - 1].initial;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (showInitialHeader)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 5.0, horizontal: 16.0),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        customer.initial,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ));
-                              },
-                              initial: customer.initial,
-                              customerId: customer.cid,
-                              isUser: false,
-                            ),
+                                ),
+                              GestureDetector(
+                                onLongPress: () {
+                                  // Edit the customer info
+                                  _editCustomer(context, customer);
+                                },
+                                child: Column(
+                                  children: [
+                                    InfoCard(
+                                      name: customer.name,
+                                      company: customer.company,
+                                      onpress: () {
+                                        Navigator.of(context)
+                                            .push(MaterialPageRoute(
+                                          builder: (context) =>
+                                              CustomerListScreen(
+                                            customerName: customer.name,
+                                            customerId: customer.cid,
+                                          ),
+                                        ));
+                                      },
+                                      initial: customer.initial,
+                                      customerId: customer.cid,
+                                      isUser: false,
+                                    ),
+                                    SizedBox(
+                                      height: 2,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
                           );
                         },
-                        separatorBuilder: (BuildContext context, int index) =>
-                            const SizedBox(
-                          height: 4,
-                        ),
                       ),
                     ),
                   ],

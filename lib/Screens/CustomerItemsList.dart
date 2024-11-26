@@ -385,8 +385,8 @@ class _AddItemSheetState extends State<AddItemSheet> {
         'price': priceController.text,
         'hanger': hanger,
         'yardage': yardage,
-        'L/D': ld,
-        'NOT': notController.text,
+        'ld': ld,
+        'not': notController.text,
         'order': nextOrder, // Assign the next order
       };
 
